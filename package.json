@@ -1,5 +1,5 @@
 {
-  "name": "ngx-typeahead",
+  "name": "ngx-type-ahead",
   "version": "0.0.1",
   "description": "Typeahead multi-select dropdown component for angular",
   "scripts": {
