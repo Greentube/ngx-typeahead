@@ -14,8 +14,10 @@ node_modules/
 *.js
 !config/*
 !karma.conf.js
+!demo/protractor.conf.js
 *.map
 *.d.ts
+!demo/src/typings.d.ts
 !webpack.config.js
 coverage
 *.metadata.json

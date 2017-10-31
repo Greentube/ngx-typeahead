@@ -1,0 +1,21 @@
+:host {
+  height: auto;
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+
+  &[disabled] {
+    cursor: not-allowed;
+
+    input {
+      background-color: inherit;
+    }
+  }
+
+  input {
+    border: none;
+    outline: 0;
+    line-height: 1;
+    flex: 1;
+  }
+}
