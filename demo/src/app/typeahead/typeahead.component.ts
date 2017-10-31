@@ -73,7 +73,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   }
 
   syncSuggestionsInit() {
-    // const stripDiacritics = (text: string) => text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    // const sanitizeString = (text: string) => text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   }
 
   asyncSuggestionsInit() {

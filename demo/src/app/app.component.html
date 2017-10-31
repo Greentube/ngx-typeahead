@@ -1,4 +1,4 @@
-<div>
+<form [formGroup]="myForm">
   <h4>Single, custom</h4>
   <input />
 
@@ -16,6 +16,15 @@
 
   <h4>Multi, template (fixed)</h4>
   <input />
-</div>
+
+  <h4>Value:</h4>
+  <pre>
+    {{myForm.value | json}}
+  </pre>
+  <h4>Errors:</h4>
+  <pre>
+    {{myForm.errors | json}}
+  </pre>
+</form>
 
 
