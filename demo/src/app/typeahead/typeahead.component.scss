@@ -1,8 +1,15 @@
 :host {
   height: auto;
   position: relative;
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
+  border-width: thin;
+  border-style: inset;
+  border-color: initial;
+  -webkit-appearance: textfield;
+  -webkit-rtl-ordering: logical;
+  user-select: text;
+  cursor: auto;
 
   &[disabled] {
     cursor: not-allowed;

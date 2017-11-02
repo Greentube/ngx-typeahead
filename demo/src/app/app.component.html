@@ -1,30 +1,49 @@
-<form [formGroup]="myForm">
-  <h4>Single, custom</h4>
-  <input />
+<header class="navbar navbar-dark bg-dark">
+  <a class="navbar-brand" href="#">Demo</a>
+</header>
+<main>
+  <div class="container">
+    <p>
+      Demo showcase of typeahead component
+    </p>
+    <form [formGroup]="myForm">
+      <div class="row">
+        <div class="col-6">
+          <h6>Single, custom</h6>
+          <typeahead formControlName="hobbySingleCustom"></typeahead>
+          <typeahead formControlName="hobbySingleCustomSet"></typeahead>
 
-  <h4>Single, fixed</h4>
-  <input />
+          <h6>Single, fixed</h6>
+          <typeahead formControlName="hobbySingleFixed"></typeahead>
+          <typeahead formControlName="hobbySingleFixedSet"></typeahead>
 
-  <h4>Multi, custom</h4>
-  <input />
+          <h6>Multi, custom</h6>
+          <typeahead formControlName="hobbyMultiCustom"></typeahead>
+          <typeahead formControlName="hobbyMultiCustomSet"></typeahead>
 
-  <h4>Multi, fixed</h4>
-  <input />
+          <h6>Multi, fixed</h6>
+          <typeahead formControlName="hobbyMultiFixed"></typeahead>
+          <typeahead formControlName="hobbyMultiFixedSet"></typeahead>
 
-  <h4>Single, template (fixed)</h4>
-  <input />
+          <h6>Single, template (fixed)</h6>
+          <typeahead formControlName="countrySingle"></typeahead>
+          <typeahead formControlName="countrySingleSet"></typeahead>
 
-  <h4>Multi, template (fixed)</h4>
-  <input />
-
-  <h4>Value:</h4>
-  <pre>
-    {{myForm.value | json}}
-  </pre>
-  <h4>Errors:</h4>
-  <pre>
-    {{myForm.errors | json}}
-  </pre>
-</form>
-
-
+          <h6>Multi, template (fixed)</h6>
+          <input formControlName="countryMulti"/>
+          <input formControlName="countryMultiSet"/>
+        </div>
+        <div class="col-6">
+          <fieldset>
+            <legend>Value:</legend>
+            <pre>{{ myForm.value | json:2 }}</pre>
+          </fieldset>
+          <fieldset>
+            <legend>Errors:</legend>
+            {{ myForm.errors | json }}
+          </fieldset>
+        </div>
+      </div>
+    </form>
+  </div>
+</main>

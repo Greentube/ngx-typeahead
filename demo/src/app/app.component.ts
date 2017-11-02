@@ -33,8 +33,19 @@ export class AppComponent implements OnInit {
   }
 
   private initializeForm(){
-    this.myForm = this.formBuilder.group([
-
-    ]);
+    this.myForm = this.formBuilder.group({
+      hobbySingleCustom: '',
+      hobbySingleFixed: '',
+      hobbyMultiCustom: '',
+      hobbyMultiFixed: '',
+      countrySingle: '',
+      countryMulti: '',
+      hobbySingleCustomSet: 'Abcd',
+      hobbySingleFixedSet: this.hobbies[0],
+      hobbyMultiCustomSet: ['Abcd'],
+      hobbyMultiFixedSet: [this.hobbies[0]],
+      countrySingleSet: this.countries[0].code,
+      countryMultiSet: [this.countries[0].code],
+    });
   }
 }

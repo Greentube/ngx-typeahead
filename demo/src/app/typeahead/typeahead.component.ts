@@ -5,20 +5,26 @@ import {
 import { Observable } from 'rxjs/Observable';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
+const KEY_UP = 'keyup';
+const KEY_DOWN = 'keydown';
+
 @Component({
   selector: 'typeahead',
   template: `
+    <input *ngIf="!_isDisabled" [disabled]="_isDisabled || null"
+           type="text" autocomplete="off"
+           (keyup)="handleInput($event)"
+           (keydown)="handleInput($event)"
+           (paste)="handleInput($event)"/>
   `,
   styleUrls: ['./typeahead.component.scss'],
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => TypeaheadComponent), multi: true }],
   host: {
-    '[class.show]': '_expanded',
-    '[class.multi]': 'multiValue',
     '[attr.disabled]': '_isDisabled || null'
   }
 })
 export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, OnDestroy, OnInit {
-  /** suggestions list - array of strings, objects or Observable*/
+  /** suggestions list - array of strings, objects or Observable */
   @Input() suggestions: string[] | Object[] | Observable<string[]> | Observable<Object[]> = [];
   // /** template for items in drop down*/
   // @Input() public suggestionTemplate: TemplateRef<any>;
@@ -34,30 +40,25 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   /** allow custom values */
   @Input() public custom: boolean = true;
   /** allow multiple values */
-  @Input() public multiValue: boolean = false;
+  @Input() public multi: boolean = false;
   /** display suggestions */
   @Input() public showSuggestions: boolean = true;
 
-
+  /** Output value change */
   @Output() valueChange = new EventEmitter();
 
-  // internal value
-  _value: any;
-  _inputModifiedEmitter: EventEmitter<any> = new EventEmitter();
-
   // ui state
-  _expanded: boolean = false;
   _isDisabled: boolean = false;
 
   private _input: HTMLInputElement;
-  private _accumulatedTimeout: number;
+  private _inputChangeEvent: EventEmitter<any> = new EventEmitter();
+  private _value: any; // TODO: Check value
 
   /**
    * CTOR
    * @param elementRef
    */
   constructor(@Inject(ElementRef) private elementRef: ElementRef) {
-    this._accumulatedTimeout = 0;
   }
 
   /**
@@ -69,7 +70,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     } else {
       this.syncSuggestionsInit();
     }
-    this._inputModifiedEmitter.emit('');
+    this._inputChangeEvent.emit('');
   }
 
   syncSuggestionsInit() {
@@ -83,8 +84,9 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
    * Init method
    */
   ngAfterViewInit() {
+    // set value to input
     this._input = this.elementRef.nativeElement.querySelector('input');
-    if (!this.multiValue && this._value) {
+    if (!this.multi && this._value) {
       this._input.value = this._value;
     }
   }
@@ -119,7 +121,12 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
    * @param event
    */
   handleInput(event: Event | KeyboardEvent) {
-    // const target = (event.target as HTMLInputElement);
+    const target = (event.target as HTMLInputElement);
+
+    if (event.type === KEY_UP) {
+      this.setValue(target.value);
+    }
+    this._inputChangeEvent.emit(target.value);
   }
 
   /**
@@ -131,11 +138,19 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     // const target = (event.target as HTMLButtonElement);
   }
 
+  setValue(value: string) {
+    this.value = value;
+    this._input.value = value;
+  }
+
   /**
    * Write new value
    * @param value
    */
-  writeValue(value: any): void {
+  writeValue(value: any): void { // TODO: Check the type
+    this._value = value;
+    this.elementRef.nativeElement.value = value;
+    this.triggerOnChange(this.elementRef.nativeElement); // trigger on change event
     this.onChange(value);
   }
 
@@ -144,4 +159,20 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   onTouched = () => { /**/ };
   registerOnChange(fn: (_: any) => void): void { this.onChange = fn; }
   registerOnTouched(fn: () => void): void { this.onTouched = fn; }
+
+  /**
+   * Trigger onChange event on native element
+   * @param {EventTarget} element
+   */
+  private triggerOnChange(element: EventTarget) {
+    // if standard (non IE) browser
+    if ('createEvent' in document) {
+      let evt = document.createEvent('HTMLEvents');
+      evt.initEvent('change', false, true);
+      element.dispatchEvent(evt);
+    } else {
+      // we need to cast since fireEvent is not standard functionality and works only in IE
+      (<any> element).fireEvent('onchange');
+    }
+  }
 }
