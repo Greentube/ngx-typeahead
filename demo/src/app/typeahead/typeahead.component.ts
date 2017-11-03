@@ -14,6 +14,11 @@ import { TypeaheadSettings, TypeaheadSuggestions } from './typeahead.interface';
 
 const KEY_UP = 'keyup';
 const KEY_DOWN = 'keydown';
+const ARROW_DOWN = 'ArrowDown';
+const ARROW_UP = 'ArrowUp';
+const ESCAPE = 'Escape';
+const ENTER = 'Enter';
+const BACKSPACE = 'Backspace';
 
 /**
  * Sanitize string for string comparison
@@ -263,12 +268,12 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     const target = (event.target as HTMLInputElement);
 
     // if esc key, close dropdown
-    if ([KEY_DOWN, KEY_UP].includes(event.type) && (event as KeyboardEvent).keyCode === 27) {
+    if ([KEY_DOWN, KEY_UP].includes(event.type) && (event as KeyboardEvent).key === ESCAPE) {
       this.toggleDropdown(false);
       return;
     }
     // if arrow down, select first item in the menu
-    if (event.type === KEY_DOWN && (event as KeyboardEvent).keyCode === 40 && this.matches.length > 0) {
+    if (event.type === KEY_DOWN && (event as KeyboardEvent).key === ARROW_DOWN && this.matches.length > 0) {
       const button = this.elementRef.nativeElement.querySelector('button[role="menuitem"]:first-child');
       button.focus();
       return;
@@ -277,11 +282,11 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     this.toggleDropdown(true);
 
     if (this.multi) {
-      if (event.type === KEY_UP && (event as KeyboardEvent).keyCode === 13 && target.value !== '') { // enter and value
+      if (event.type === KEY_UP && (event as KeyboardEvent).key === ENTER && target.value !== '') { // enter and value
         this.setValue(target.value);
         this.toggleDropdown(false);
       }
-      if ([KEY_DOWN, KEY_UP].includes(event.type) && (event as KeyboardEvent).keyCode === 8 && target.value === '') { // backspace
+      if ([KEY_DOWN, KEY_UP].includes(event.type) && (event as KeyboardEvent).key === BACKSPACE && target.value === '') { // backspace
         if (event.type === KEY_DOWN) {
           this._removeInProgress = true;
         } else if (this._removeInProgress && this.values.length) {
@@ -304,20 +309,20 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     const target = (event.target as HTMLButtonElement);
 
     if (event.type === KEY_UP) {
-      if (event.keyCode === 13) {  // enter
+      if (event.key === ENTER) {  // enter
         this.setValue(value);
         this._inputChangeEvent.emit(this._input.value);
         this.toggleDropdown(false);
       }
-      if (event.keyCode === 27) { // escape key
+      if (event.key === ESCAPE) { // escape key
         this._input.focus();
         this.toggleDropdown(false);
       }
     } else { // scroll to parent
-      if (event.keyCode === 40 && target.nextElementSibling) {  // arrow down
+      if (event.key === ARROW_DOWN && target.nextElementSibling) {  // arrow down
         (<HTMLElement>target.nextElementSibling).focus();
       }
-      if (event.keyCode === 38 && target.previousElementSibling) { // arrow up
+      if (event.key === ARROW_UP && target.previousElementSibling) { // arrow up
         (<HTMLElement>target.previousElementSibling).focus();
       }
       (<HTMLElement>target.parentNode).scrollTop = target.offsetTop;

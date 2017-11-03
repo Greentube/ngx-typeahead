@@ -14,6 +14,11 @@ import { TypeaheadSettings, TypeaheadSuggestions } from './typeahead.interface';
 
 const KEY_UP = 'keyup';
 const KEY_DOWN = 'keydown';
+const ARROW_DOWN = 'ArrowDown';
+const ARROW_UP = 'ArrowUp';
+const ESCAPE = 'Escape';
+const ENTER = 'Enter';
+const BACKSPACE = 'Backspace';
 
 /**
  * Sanitize string for string comparison
@@ -31,42 +36,43 @@ const sanitizeString = (text: string) =>
 @Component({
   selector: 'type-ahead',
   styles: [`
-    :host {
-        height: auto;
-        position: relative;
-        display: inline-flex;
-        flex-wrap: wrap;
-        border-width: thin;
-        border-style: inset;
-        border-color: initial;
-        -webkit-appearance: textfield;
-        -webkit-rtl-ordering: logical;
-        user-select: text;
-        cursor: auto;
-    }
-    :host[disabled] {
-        cursor: not-allowed;
-    }
-    :host[disabled] input {
-        background-color: inherit;
-    }
-    :host .typeahead-badge {
-        white-space: nowrap;
-    }
-    :host input {
-        border: none;
-        outline: 0;
-        line-height: 1;
-        flex: 1;
-    }
+      :host {
+          height: auto;
+          min-height: 1em;
+          position: relative;
+          display: inline-flex;
+          flex-wrap: wrap;
+          border-width: thin;
+          border-style: inset;
+          border-color: initial;
+          -webkit-appearance: textfield;
+          -webkit-rtl-ordering: logical;
+          user-select: text;
+          cursor: auto;
+      }
+      :host[disabled] {
+          cursor: not-allowed;
+      }
+      :host[disabled] input {
+          background-color: inherit;
+      }
+      :host .typeahead-badge {
+          white-space: nowrap;
+      }
+      :host input {
+          border: none;
+          outline: 0;
+          line-height: 1;
+          flex: 1;
+      }
   `],
   template: `
     <span [ngClass]="settings.tagClass" class="typeahead-badge" *ngFor="let value of values">
-      {{ value }}
+      {{ complex ? value[nameField] : value }}
       <span *ngIf="!isDisabled" aria-hidden="true" (click)="removeValue(value)"
             [ngClass]="settings.tagRemoveIconClass">×</span>
     </span>
-    <input *ngIf="!isDisabled || !multi" [disabled]="isDisabled || null"
+    <input *ngIf="!isDisabled || !multi || !values.length" [disabled]="isDisabled || null"
            type="text" autocomplete="off"
            (keyup)="handleInput($event)"
            (keydown)="handleInput($event)"
@@ -80,7 +86,7 @@ const sanitizeString = (text: string) =>
               (mouseup)="setValue(match, true)"
               (keydown)="handleButton($event, match)"
               (keyup)="handleButton($event, match)">
-        {{ match }}
+        {{ complex ? match[nameField] : match }}
       </button>
       <div role="menuitem" *ngIf="!matches.length && !custom"
            [ngClass]="settings.dropdownMenuItemClass">
@@ -103,6 +109,8 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   @Input() custom = true;
   /** allow multiple values */
   @Input() multi = false;
+  /** use complex suggestions and results */
+  @Input() complex = false;
 
   /** Value of form control */
   @Input()
@@ -126,6 +134,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   isExpanded = false;
   dropDownClass = '';
   matches: string[] | Object[] = [];
+  allMatches: string[] | Object[] = [];
 
   // values
   values: any[] = [];
@@ -175,7 +184,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
 
     // if not match then cleanup the values
     if (!this.custom && !this.hasMatch(this._input.value)) {
-      this._input.value = this.value = null;
+      this._input.value = this.value = null; // TODO don't cleanup multiple
       this._inputChangeEvent.emit('');
       return;
     }
@@ -207,6 +216,9 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
       }).subscribe((matches: string[] | Object[]) => {
       this.matches = matches;
     });
+    suggestion$.toArray().subscribe((suggestions: string[] | Object[]) => {
+      this.allMatches = suggestions;
+    });
   }
 
   /**
@@ -215,8 +227,10 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   ngAfterViewInit() {
     // set value to input
     this._input = this.elementRef.nativeElement.querySelector('input');
-    if (!this.multi && this._value) { // TODO: change for templates
-      this._input.value = this._value;
+    if (!this.multi && this._value) {
+      this._input.value = this.complex ?
+        this.extractNameFromMatches(this._value) :
+        this._value;
     }
   }
 
@@ -224,6 +238,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
    * Cleanup timeout
    */
   ngOnDestroy(): void {
+    // TODO: cleanup subscriptions
   }
 
   /**
@@ -253,12 +268,12 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     const target = (event.target as HTMLInputElement);
 
     // if esc key, close dropdown
-    if ([KEY_DOWN, KEY_UP].includes(event.type) && (event as KeyboardEvent).keyCode === 27) {
+    if ([KEY_DOWN, KEY_UP].includes(event.type) && (event as KeyboardEvent).key === ESCAPE) {
       this.toggleDropdown(false);
       return;
     }
     // if arrow down, select first item in the menu
-    if (event.type === KEY_DOWN && (event as KeyboardEvent).keyCode === 40 && this.matches.length > 0) {
+    if (event.type === KEY_DOWN && (event as KeyboardEvent).key === ARROW_DOWN && this.matches.length > 0) {
       const button = this.elementRef.nativeElement.querySelector('button[role="menuitem"]:first-child');
       button.focus();
       return;
@@ -267,11 +282,11 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     this.toggleDropdown(true);
 
     if (this.multi) {
-      if (event.type === KEY_UP && (event as KeyboardEvent).keyCode === 13 && target.value !== '') { // enter and value
+      if (event.type === KEY_UP && (event as KeyboardEvent).key === ENTER && target.value !== '') { // enter and value
         this.setValue(target.value);
         this.toggleDropdown(false);
       }
-      if ([KEY_DOWN, KEY_UP].includes(event.type) && (event as KeyboardEvent).keyCode === 8 && target.value === '') { // backspace
+      if ([KEY_DOWN, KEY_UP].includes(event.type) && (event as KeyboardEvent).key === BACKSPACE && target.value === '') { // backspace
         if (event.type === KEY_DOWN) {
           this._removeInProgress = true;
         } else if (this._removeInProgress && this.values.length) {
@@ -290,42 +305,38 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
    * @param event
    * @param value
    */
-  handleButton(event: KeyboardEvent, value: string) {
+  handleButton(event: KeyboardEvent, value: any) {
     const target = (event.target as HTMLButtonElement);
 
     if (event.type === KEY_UP) {
-      if (event.keyCode === 13) {  // enter
+      if (event.key === ENTER) {  // enter
         this.setValue(value);
         this._inputChangeEvent.emit(this._input.value);
         this.toggleDropdown(false);
       }
-      if (event.keyCode === 27) { // escape key
+      if (event.key === ESCAPE) { // escape key
         this._input.focus();
         this.toggleDropdown(false);
       }
     } else { // scroll to parent
-      if (event.keyCode === 40 && target.nextElementSibling) {  // arrow down
+      if (event.key === ARROW_DOWN && target.nextElementSibling) {  // arrow down
         (<HTMLElement>target.nextElementSibling).focus();
       }
-      if (event.keyCode === 38 && target.previousElementSibling) { // arrow up
+      if (event.key === ARROW_UP && target.previousElementSibling) { // arrow up
         (<HTMLElement>target.previousElementSibling).focus();
       }
       (<HTMLElement>target.parentNode).scrollTop = target.offsetTop;
     }
   }
 
-  setValue(value: string, collapseMenu?: boolean) {
-    this.value = value;
-    this._input.value = value;
-
-    if (!this.custom && !this.hasMatch(this._input.value)) {
+  setValue(value: any, collapseMenu?: boolean) {
+    if (!this.custom && !this.hasMatch(value)) {
       return;
     }
 
     if (this.multi) {
       if (!this.values.includes(value)) {
-        this.values.push(value);
-        this.value = this.values;
+        this.value = this.values.concat(value).map(this.extractIdentifier.bind(this));
         this._input.value = '';
       }
     } else {
@@ -339,16 +350,14 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     this._input.focus();
   }
 
-  removeValue(value: string) {
+  removeValue(value: any) {
     const index = this.values.indexOf(value);
     if (index !== -1) {
       if (index === this.values.length - 1) {
-        this.values.pop();
+        this.value = this.values.slice(0, -1).map(this.extractIdentifier.bind(this));
       } else {
-        this.values.splice(index, 1);
+        this.value = this.values.slice(0, index).concat(this.values.slice(index + 1)).map(this.extractIdentifier.bind(this));
       }
-      this.value = this.values;
-
       this._input.focus();
     }
   }
@@ -366,6 +375,15 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     // set value
     this._value = value;
     this.elementRef.nativeElement.value = value;
+
+    // modify values list
+    if (this.multi) {
+      if (this.complex) {
+        this.values = value ? value.map(this.extractObjectFromId.bind(this)) : [];
+      } else {
+        this.values = value || [];
+      }
+    }
 
     // trigger change
     if ('createEvent' in document) { // if standard (non IE) browser
@@ -417,5 +435,27 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
       }
     }
     return false;
+  }
+
+  private extractNameFromMatches(id: any) {
+    const match = this.extractObjectFromId(id);
+    if (match) {
+      return match[this.nameField];
+    } else {
+      return '';
+    }
+  }
+
+  private extractObjectFromId(id: any) {
+    for (const key in this.allMatches) {
+      if ((<any> this.allMatches[key])[this.idField] === id) {
+        return this.allMatches[key];
+      }
+    }
+    return null;
+  }
+
+  private extractIdentifier(value: any) {
+    return this.complex ? value[this.idField] : value
   }
 }
