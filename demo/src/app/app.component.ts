@@ -40,12 +40,12 @@ export class AppComponent implements OnInit {
       hobbyMultiFixed: '',
       countrySingle: '',
       countryMulti: '',
-      hobbySingleCustomSet: 'Abcd',
-      hobbySingleFixedSet: this.hobbies[0],
-      hobbyMultiCustomSet: ['Abcd'],
-      hobbyMultiFixedSet: [this.hobbies[0]],
-      countrySingleSet: this.countries[0].code,
-      countryMultiSet: [this.countries[0].code],
+      hobbySingleCustomSet: { value: 'Abcd', disabled: true },
+      hobbySingleFixedSet: { value: this.hobbies[0], disabled: true },
+      hobbyMultiCustomSet: { value: ['Abcd'], disabled: true },
+      hobbyMultiFixedSet: { value: [this.hobbies[0]], disabled: true },
+      countrySingleSet: { value: this.countries[0].code, disabled: true },
+      countryMultiSet: { value: [this.countries[0].code], disabled: true }
     });
   }
 }
