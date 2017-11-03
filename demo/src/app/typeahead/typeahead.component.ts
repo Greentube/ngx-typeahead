@@ -33,6 +33,7 @@ const sanitizeString = (text: string) =>
   styles: [`
     :host {
         height: auto;
+        min-height: 1em;
         position: relative;
         display: inline-flex;
         flex-wrap: wrap;
@@ -62,11 +63,11 @@ const sanitizeString = (text: string) =>
   `],
   template: `
     <span [ngClass]="settings.tagClass" class="typeahead-badge" *ngFor="let value of values">
-      {{ value }}
+      {{ complex ? value[nameField] : value }}
       <span *ngIf="!isDisabled" aria-hidden="true" (click)="removeValue(value)"
             [ngClass]="settings.tagRemoveIconClass">×</span>
     </span>
-    <input *ngIf="!isDisabled || !multi" [disabled]="isDisabled || null"
+    <input *ngIf="!isDisabled || !multi || !values.length" [disabled]="isDisabled || null"
            type="text" autocomplete="off"
            (keyup)="handleInput($event)"
            (keydown)="handleInput($event)"
@@ -80,7 +81,7 @@ const sanitizeString = (text: string) =>
               (mouseup)="setValue(match, true)"
               (keydown)="handleButton($event, match)"
               (keyup)="handleButton($event, match)">
-        {{ match }}
+        {{ complex ? match[nameField] : match }}
       </button>
       <div role="menuitem" *ngIf="!matches.length && !custom"
            [ngClass]="settings.dropdownMenuItemClass">
@@ -103,6 +104,8 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   @Input() custom = true;
   /** allow multiple values */
   @Input() multi = false;
+  /** use complex suggestions and results */
+  @Input() complex = false;
 
   /** Value of form control */
   @Input()
@@ -126,6 +129,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   isExpanded = false;
   dropDownClass = '';
   matches: string[] | Object[] = [];
+  allMatches: string[] | Object[] = [];
 
   // values
   values: any[] = [];
@@ -175,7 +179,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
 
     // if not match then cleanup the values
     if (!this.custom && !this.hasMatch(this._input.value)) {
-      this._input.value = this.value = null;
+      this._input.value = this.value = null; // TODO don't cleanup multiple
       this._inputChangeEvent.emit('');
       return;
     }
@@ -207,6 +211,9 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
       }).subscribe((matches: string[] | Object[]) => {
       this.matches = matches;
     });
+    suggestion$.toArray().subscribe((suggestions: string[] | Object[]) => {
+      this.allMatches = suggestions;
+    });
   }
 
   /**
@@ -215,8 +222,10 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   ngAfterViewInit() {
     // set value to input
     this._input = this.elementRef.nativeElement.querySelector('input');
-    if (!this.multi && this._value) { // TODO: change for templates
-      this._input.value = this._value;
+    if (!this.multi && this._value) {
+      this._input.value = this.complex ?
+        this.extractNameFromMatches(this._value) :
+        this._value;
     }
   }
 
@@ -224,6 +233,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
    * Cleanup timeout
    */
   ngOnDestroy(): void {
+    // TODO: cleanup subscriptions
   }
 
   /**
@@ -290,7 +300,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
    * @param event
    * @param value
    */
-  handleButton(event: KeyboardEvent, value: string) {
+  handleButton(event: KeyboardEvent, value: any) {
     const target = (event.target as HTMLButtonElement);
 
     if (event.type === KEY_UP) {
@@ -314,18 +324,14 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     }
   }
 
-  setValue(value: string, collapseMenu?: boolean) {
-    this.value = value;
-    this._input.value = value;
-
-    if (!this.custom && !this.hasMatch(this._input.value)) {
+  setValue(value: any, collapseMenu?: boolean) {
+    if (!this.custom && !this.hasMatch(value)) {
       return;
     }
 
     if (this.multi) {
       if (!this.values.includes(value)) {
-        this.values.push(value);
-        this.value = this.values;
+        this.value = this.values.concat(value).map(this.extractIdentifier.bind(this));
         this._input.value = '';
       }
     } else {
@@ -339,16 +345,14 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     this._input.focus();
   }
 
-  removeValue(value: string) {
+  removeValue(value: any) {
     const index = this.values.indexOf(value);
     if (index !== -1) {
       if (index === this.values.length - 1) {
-        this.values.pop();
+        this.value = this.values.slice(0, -1).map(this.extractIdentifier.bind(this));
       } else {
-        this.values.splice(index, 1);
+        this.value = this.values.slice(0, index).concat(this.values.slice(index + 1)).map(this.extractIdentifier.bind(this));
       }
-      this.value = this.values;
-
       this._input.focus();
     }
   }
@@ -366,6 +370,15 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     // set value
     this._value = value;
     this.elementRef.nativeElement.value = value;
+
+    // modify values list
+    if (this.multi) {
+      if (this.complex) {
+        this.values = value ? value.map(this.extractObjectFromId.bind(this)) : [];
+      } else {
+        this.values = value || [];
+      }
+    }
 
     // trigger change
     if ('createEvent' in document) { // if standard (non IE) browser
@@ -417,5 +430,27 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
       }
     }
     return false;
+  }
+
+  private extractNameFromMatches(id: any) {
+    const match = this.extractObjectFromId(id);
+    if (match) {
+      return match[this.nameField];
+    } else {
+      return '';
+    }
+  }
+
+  private extractObjectFromId(id: any) {
+    for (const key in this.allMatches) {
+      if ((<any> this.allMatches[key])[this.idField] === id) {
+        return this.allMatches[key];
+      }
+    }
+    return null;
+  }
+
+  private extractIdentifier(value: any) {
+    return this.complex ? value[this.idField] : value
   }
 }

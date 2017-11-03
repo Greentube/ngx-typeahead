@@ -2,7 +2,7 @@
 @import '../../node_modules/bootstrap/scss/bootstrap';
 @import '../../node_modules/bootstrap/scss/variables';
 
-typeahead[disabled] {
+type-ahead[disabled] {
   background-color: $input-disabled-bg;
 
   .btn.badge {
@@ -10,7 +10,7 @@ typeahead[disabled] {
   }
 }
 
-typeahead {
+type-ahead {
   .btn.badge {
     margin-right: $spacer / 4;
     margin-top: $spacer / 4;
