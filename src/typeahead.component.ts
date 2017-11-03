@@ -1,162 +1,158 @@
 import {
   Component, forwardRef, Input, OnDestroy, ElementRef, Output,
-  EventEmitter, Renderer, HostListener, AfterViewInit, Inject, TemplateRef, OnInit
+  EventEmitter, AfterViewInit, Inject, OnInit, Renderer2, HostListener, HostBinding
 } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/observable/from';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/mergeMap';
-import 'rxjs/add/operator/filter';
+import 'rxjs/add/operator/take';
 import 'rxjs/add/operator/toArray';
-import 'rxjs/add/observable/from';
+import 'rxjs/add/operator/filter';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { TypeaheadSettings, TypeaheadSuggestions } from './typeahead.interface';
 
-const MINIMAL_WAIT = 100;
-// const MAXIMAL_WAIT = 800;
+const KEY_UP = 'keyup';
+const KEY_DOWN = 'keydown';
 
+/**
+ * Sanitize string for string comparison
+ * @param {string} text
+ */
+const sanitizeString = (text: string) =>
+  text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+/***
+ * Usage:
+ *
+ * <typeahead formControlName="myControlName" [suggestions]="['abc', 'def',...]"></typeahead>
+ * <typeahead formControlName="myControlName" [suggestions]="Observable.of(['abc', 'def',...])"></typeahead>
+ */
 @Component({
-  selector: 'typeahead',
-  // changeDetection: ChangeDetectionStrategy.OnPush, // fix this later
+  selector: 'type-ahead',
+  styles: [`
+    :host {
+        height: auto;
+        position: relative;
+        display: inline-flex;
+        flex-wrap: wrap;
+        border-width: thin;
+        border-style: inset;
+        border-color: initial;
+        -webkit-appearance: textfield;
+        -webkit-rtl-ordering: logical;
+        user-select: text;
+        cursor: auto;
+    }
+    :host[disabled] {
+        cursor: not-allowed;
+    }
+    :host[disabled] input {
+        background-color: inherit;
+    }
+    :host .typeahead-badge {
+        white-space: nowrap;
+    }
+    :host input {
+        border: none;
+        outline: 0;
+        line-height: 1;
+        flex: 1;
+    }
+  `],
   template: `
-    <span class="btn badge badge-primary" *ngFor="let tag of _arrayOfValues">
-      {{tag}}
-    <i *ngIf="!_isDisabled" (click)="removeTag($event, tag)" class="theme-icon-remove"></i>
+    <span [ngClass]="settings.tagClass" class="typeahead-badge" *ngFor="let value of values">
+      {{ value }}
+      <span *ngIf="!isDisabled" aria-hidden="true" (click)="removeValue(value)"
+            [ngClass]="settings.tagRemoveIconClass">×</span>
     </span>
-    <input *ngIf="!_isDisabled || !multiValue || !_arrayOfValues.length" type="text" autocomplete="off"
-           (keyup)="handleInput($event)" (keydown)="handleInput($event)" (paste)="handleInput($event)"
-           (click)="toggleExpanded($event, true)" [disabled]="_isDisabled || null"/>
-    <i class="dropdown-toggle" *ngIf="showSuggestions && !_isDisabled" (click)="toggleExpanded($event)"></i>
-
-    <div role="menu" class="dropdown-menu" *ngIf="showSuggestions && _matches">
-        <button class="dropdown-item" type="button" *ngFor="let suggestion of _matches"
-                (mouseup)="addTag($event, suggestion)" (keydown)="handleButton($event, suggestion)"
-                (keyup)="handleButton($event, suggestion)">
-            {{suggestion}}
-        </button>
-        <div *ngIf="_matches.length == 0" disabled="true" role="menuitem" class="dropdown-item">
-            {{'NO_RESULTS' | translate}}
-        </div>
+    <input *ngIf="!isDisabled || !multi" [disabled]="isDisabled || null"
+           type="text" autocomplete="off"
+           (keyup)="handleInput($event)"
+           (keydown)="handleInput($event)"
+           (paste)="handleInput($event)"
+           (click)="toggleDropdown(true)"/>
+    <i *ngIf="!isDisabled" (click)="toggleDropdown()"
+       [ngClass]="settings.dropdownToggleClass"></i>
+    <div role="menu" [attr.class]="dropDownClass">
+      <button *ngFor="let match of matches" type="button" role="menuitem"
+              [ngClass]="settings.dropdownMenuItemClass"
+              (mouseup)="setValue(match, true)"
+              (keydown)="handleButton($event, match)"
+              (keyup)="handleButton($event, match)">
+        {{ match }}
+      </button>
+      <div role="menuitem" *ngIf="!matches.length && !custom"
+           [ngClass]="settings.dropdownMenuItemClass">
+        {{ settings.noMatchesText }}
+      </div>
     </div>
   `,
-  styleUrls: ['./typeahead.component.scss'],
-  providers: [{provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => TypeaheadComponent), multi: true}],
-  host: {
-    '[class.show]': '_expanded',
-    '[class.multi]': 'multiValue',
-    '[attr.disabled]': '_isDisabled || null'
-  }
+  providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => TypeaheadComponent), multi: true }]
 })
 export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, OnDestroy, OnInit {
-  /** suggestions list - array of strings, objects or Observable*/
-  @Input() suggestions: string[] | Object[] | Observable<string[]> | Observable<Object[]> = [];
-  /** template for items in drop down*/
-  @Input() public suggestionTemplate: TemplateRef<any>;
-  /** maximal number of visible items */
-  @Input() public suggestionLimit: number;
+  /** suggestions list - array of strings, objects or Observable */
+  @Input() suggestions: TypeaheadSuggestions = [];
+  /** template for items in drop down */
+  // @Input() public suggestionTemplate: TemplateRef<any>;
   /** field to use from objects as name */
-  @Input() public nameField: string;
+  @Input() nameField = 'name';
   /** field to use from objects as id */
-  @Input() public idField: string;
-  /** delay of input type debounce */
-  @Input() public inputDelay: number = 0;
-
+  @Input() idField = 'id';
   /** allow custom values */
-  @Input() public custom: boolean = true;
+  @Input() custom = true;
   /** allow multiple values */
-  @Input() public multiValue: boolean = false;
-  /** display suggestions */
-  @Input() public showSuggestions: boolean = true;
+  @Input() multi = false;
 
+  /** Value of form control */
+  @Input()
+  set settings(value: TypeaheadSettings) {
+    Object.assign(this._settings, value);
+  }
 
+  get settings(): TypeaheadSettings {
+    return this._settings;
+  }
+
+  /** UI Bindings */
+  @HostBinding('class.multi') get multiBinding() { return this.multi; }
+  @HostBinding('attr.disabled') get disabledBinding() { return this.isDisabled || null; }
+
+  /** Output value change */
   @Output() valueChange = new EventEmitter();
 
-  // internal value
-  _value: any;
-  _arrayOfValues: any[] = [];
-
-  _matches: string[];
-  _inputModifiedEmitter: EventEmitter<any> = new EventEmitter();
-
   // ui state
-  protected _expanded: boolean = false;
+  isDisabled = false;
+  isExpanded = false;
+  dropDownClass = '';
+  matches: string[] | Object[] = [];
 
-  private _safeToRemove = false;
+  // values
+  values: any[] = [];
+
+  private _settings: TypeaheadSettings = {
+    suggestionsLimit: 10,
+    typeDelay: 50,
+    noMatchesText: 'No matches found',
+
+    tagClass: 'btn badge badge-primary',
+    tagRemoveIconClass: 'close',
+    dropdownMenuClass: 'dropdown-menu',
+    dropdownMenuExpandedClass: 'dropdown-menu show',
+    dropdownMenuItemClass: 'dropdown-item',
+    dropdownToggleClass: 'dropdown-toggle'
+  };
   private _input: HTMLInputElement;
-  private _timeOut: number;
-  private _accumulatedTimeout: number;
-  private _isDisabled: boolean = false;
+  private _inputChangeEvent: EventEmitter<any> = new EventEmitter();
+  private _value: any;
+  private _removeInProgress = false;
 
   /**
    * CTOR
    * @param elementRef
    * @param renderer
    */
-  constructor(@Inject(ElementRef) private elementRef: ElementRef, @Inject(Renderer) private renderer: Renderer) {
-    this._accumulatedTimeout = 0;
-  }
-
-  ngOnInit() {
-    if (this.suggestions instanceof Observable) {
-      this.asyncActions();
-    } else {
-      this.syncActions();
-    }
-    this._inputModifiedEmitter.emit('');
-  }
-
-  syncActions() {
-    const stripDiacritics = (text: string) => text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-
-    this._inputModifiedEmitter.debounceTime(this.inputDelay)
-      .mergeMap((value: string) => {
-        const normalizedQuery = stripDiacritics(value);
-
-        if (this.suggestions) {
-          // filtered by option and combined into array
-          return Observable.from(this.suggestions).filter((option: any) =>
-            option && stripDiacritics(option).indexOf(normalizedQuery) !== -1
-          ).filter((option: any) => !this.multiValue || this._arrayOfValues.indexOf(option) === -1
-          ).toArray();
-        } else {
-          return [];
-        }
-      }).subscribe(
-      (matches: any[]) => {
-        this._matches = matches;
-      },
-      (err: any) => {
-        // console.error(err);
-      }
-    );
-  }
-
-  asyncActions() {
-    this._inputModifiedEmitter.debounceTime(this.inputDelay)
-      .mergeMap(() => this.suggestions)
-      .subscribe(
-        (matches: any[]) => {
-          this._matches = matches;
-        },
-        (err: any) => {
-          // console.error(err);
-        }
-      );
-  }
-
-  /**
-   * Init method
-   */
-  ngAfterViewInit() {
-    this._input = this.elementRef.nativeElement.querySelector('input');
-    if ( ! this.multiValue && this._value) {
-      this._input.value = this._value;
-    }
-  }
-
-  /**
-   * Cleanup timeout
-   */
-  ngOnDestroy(): void {
-    this.cleanUpTimeout();
+  constructor(@Inject(ElementRef) private elementRef: ElementRef, @Inject(Renderer2) private renderer: Renderer2) {
   }
 
   @HostListener('focusout', ['$event'])
@@ -169,92 +165,72 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
 
         // grab back input focus after button click since `focus out` cancelled it
         if (event.target === this._input && event.relatedTarget === this.elementRef.nativeElement) {
-          this.renderer.invokeElementMethod(this._input, 'focus', []);
+          this._input.focus();
         }
         return;
       }
     }
+    // close dropdown
+    this.toggleDropdown(false);
 
-    this._expanded = false;
-
-    if (!this.custom && this._matches.indexOf(this._input.value) === -1) {
+    // if not match then cleanup the values
+    if (!this.custom && !this.hasMatch(this._input.value)) {
       this._input.value = this.value = null;
-      this._inputModifiedEmitter.emit('');
-    } else if (this.multiValue) {
-      this._input.value = null;
-      this._inputModifiedEmitter.emit('');
-    }
-  }
-
-  /**
-   * Remove tag from input
-   * @param event
-   * @param tag
-   */
-  removeTag(event: Event, tag: string) {
-    event.stopImmediatePropagation();
-    event.stopPropagation();
-    event.preventDefault();
-
-    let index = this._value && this._value.indexOf(tag);
-    if (index !== -1) {
-      if (index === this._value.length - 1) {
-        this.value = this._arrayOfValues = this._value.slice(0, this._value.length - 1);
-      } else {
-        this.value = this._arrayOfValues = this._value.slice(0, index).concat(this._value.slice(index + 1));
-      }
-      this.renderer.invokeElementMethod(this._input, 'focus', []);
-      this._inputModifiedEmitter.emit('');
-    }
-  }
-
-  /**
-   * Add new tag (on enter and data list selection)
-   * @param event
-   * @param tag
-   */
-  addTag(event: Event, tag: string) {
-    event.stopImmediatePropagation();
-    event.stopPropagation();
-
-    if (!this.custom && this._matches.indexOf(tag) === -1) {
+      this._inputChangeEvent.emit('');
       return;
     }
-    if (this.multiValue) {
-      let notExists = !this._value || !this._value.length || this._value.indexOf(tag) === -1;
-      if (notExists && tag.length) {
-        this.value = this._arrayOfValues = (this._value || []).concat([tag]);
-        this._input.value = '';
-        this._inputModifiedEmitter.emit('');
-      }
-    } else {
-      this.value = tag;
-      this._input.value = tag;
-      this._inputModifiedEmitter.emit(tag);
+    // keep just approved tags
+    if (this.multi) {
+      this._input.value = null;
+      this._inputChangeEvent.emit('');
     }
-    if (!this.custom) {
-      this._expanded = false;
-    }
-    this.renderer.invokeElementMethod(this._input, 'focus', []);
   }
 
   /**
-   * Toggle dropdown
+   * On component initialization
    */
-  toggleExpanded(event: Event, value?: boolean) {
-    event.stopPropagation();
-    event.preventDefault();
+  ngOnInit() {
+    this.suggestionsInit(Observable.from(this.suggestions));
+    this.toggleDropdown(false);
+    this._inputChangeEvent.emit('');
+  }
 
-    this._expanded = value !== void 0 ?
-      value :
-      !this._expanded;
+  suggestionsInit(suggestion$: Observable<any>) {
+    this._inputChangeEvent
+      .debounceTime(this.settings.typeDelay)
+      .mergeMap((value: string) => {
+        const normalizedValue = sanitizeString(value);
+        return suggestion$
+          .filter(this.filterSuggestion(normalizedValue))
+          .take(this.settings.suggestionsLimit)
+          .toArray();
+      }).subscribe((matches: string[] | Object[]) => {
+      this.matches = matches;
+    });
+  }
+
+  /**
+   * Init method
+   */
+  ngAfterViewInit() {
+    // set value to input
+    this._input = this.elementRef.nativeElement.querySelector('input');
+    if (!this.multi && this._value) { // TODO: change for templates
+      this._input.value = this._value;
+    }
+  }
+
+  /**
+   * Cleanup timeout
+   */
+  ngOnDestroy(): void {
   }
 
   /**
    * Value getter
    * @returns {string|string[]}
    */
-  get value(): string | string[] {
+  get value(): any {
     return this._value;
   }
 
@@ -262,7 +238,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
    * Value setter
    * @param value
    */
-  set value(value: string | string[]) {
+  set value(value: any) {
     if (value === this._value) {
       return;
     }
@@ -274,71 +250,112 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
    * @param event
    */
   handleInput(event: Event | KeyboardEvent) {
-    event.stopImmediatePropagation();
-    event.stopPropagation(); // stop event bleeding
+    const target = (event.target as HTMLInputElement);
 
-    let target = (event.target as HTMLInputElement);
-    this._expanded = true;
+    // if esc key, close dropdown
+    if ([KEY_DOWN, KEY_UP].includes(event.type) && (event as KeyboardEvent).keyCode === 27) {
+      this.toggleDropdown(false);
+      return;
+    }
+    // if arrow down, select first item in the menu
+    if (event.type === KEY_DOWN && (event as KeyboardEvent).keyCode === 40 && this.matches.length > 0) {
+      const button = this.elementRef.nativeElement.querySelector('button[role="menuitem"]:first-child');
+      button.focus();
+      return;
+    }
 
-    if (this.multiValue) {
-      if (event.type === 'keydown' || event.type === 'keyup') {
-        if ((event as KeyboardEvent).keyCode === 13 && target.value !== '') { // enter
-          this.addTag(event, target.value);
-        }
-        if ((event as KeyboardEvent).keyCode === 8 && target.value === '') { // backspace
-          if (event.type === 'keydown') {
-            this._safeToRemove = true;
-          } else if (this._safeToRemove && this._value) {
-            this._safeToRemove = false;
-            this.removeTag(event, this._value[this._value.length - 1]);
-          }
+    this.toggleDropdown(true);
+
+    if (this.multi) {
+      if (event.type === KEY_UP && (event as KeyboardEvent).keyCode === 13 && target.value !== '') { // enter and value
+        this.setValue(target.value);
+        this.toggleDropdown(false);
+      }
+      if ([KEY_DOWN, KEY_UP].includes(event.type) && (event as KeyboardEvent).keyCode === 8 && target.value === '') { // backspace
+        if (event.type === KEY_DOWN) {
+          this._removeInProgress = true;
+        } else if (this._removeInProgress && this.values.length) {
+          this._removeInProgress = false;
+          this.removeValue(this.values[this.values.length - 1]);
         }
       }
-    } else if (this.custom && event.type === 'keyup') {
-      this.addTag(event, target.value);
+    } else if (event.type === KEY_UP) {
+      this.setValue(target.value);
     }
-    if (event.type === 'keydown' || event.type === 'keyup') {
-      if ((event as KeyboardEvent).keyCode === 40 && this._matches.length > 0) { // arrow down
-        let button = this.elementRef.nativeElement.querySelector('button.dropdown-item:first-child');
-        this.renderer.invokeElementMethod(button, 'focus', []);
-      }
-    }
-    this._inputModifiedEmitter.emit(target.value);
+    this._inputChangeEvent.emit(target.value);
   }
 
   /**
-   * Move through collection on arrow commands
+   * Move through collection on dropdown
    * @param event
-   * @param tag
+   * @param value
    */
-  handleButton(event: KeyboardEvent, tag: string) {
-    event.stopImmediatePropagation();
-    event.stopPropagation(); // stop event bleeding
+  handleButton(event: KeyboardEvent, value: string) {
+    const target = (event.target as HTMLButtonElement);
 
-    let target = (event.target as HTMLButtonElement);
-
-    if (event.type === 'keydown') {
-      if (event.keyCode === 13 && target.nextElementSibling) {  // enter
-        this.addTag(event, tag);
+    if (event.type === KEY_UP) {
+      if (event.keyCode === 13) {  // enter
+        this.setValue(value);
+        this._inputChangeEvent.emit(this._input.value);
+        this.toggleDropdown(false);
       }
+      if (event.keyCode === 27) { // escape key
+        this._input.focus();
+        this.toggleDropdown(false);
+      }
+    } else { // scroll to parent
       if (event.keyCode === 40 && target.nextElementSibling) {  // arrow down
-        this.renderer.invokeElementMethod(target.nextElementSibling, 'focus', []);
+        (<HTMLElement>target.nextElementSibling).focus();
       }
       if (event.keyCode === 38 && target.previousElementSibling) { // arrow up
-        this.renderer.invokeElementMethod(target.previousElementSibling, 'focus', []);
+        (<HTMLElement>target.previousElementSibling).focus();
       }
-    } else {
-      this.scrollToTarget(target);
+      (<HTMLElement>target.parentNode).scrollTop = target.offsetTop;
     }
   }
 
-  /**
-   * Scroll to focused element
-   * @param target
-   */
-  scrollToTarget(target: any) {
-    let parent = target.parentNode;
-    parent.scrollTop = target.offsetTop;
+  setValue(value: string, collapseMenu?: boolean) {
+    this.value = value;
+    this._input.value = value;
+
+    if (!this.custom && !this.hasMatch(this._input.value)) {
+      return;
+    }
+
+    if (this.multi) {
+      if (!this.values.includes(value)) {
+        this.values.push(value);
+        this.value = this.values;
+        this._input.value = '';
+      }
+    } else {
+      this.value = value;
+      this._input.value = value;
+    }
+    if (collapseMenu) {
+      this.toggleDropdown(false);
+    }
+    // refocus the input
+    this._input.focus();
+  }
+
+  removeValue(value: string) {
+    const index = this.values.indexOf(value);
+    if (index !== -1) {
+      if (index === this.values.length - 1) {
+        this.values.pop();
+      } else {
+        this.values.splice(index, 1);
+      }
+      this.value = this.values;
+
+      this._input.focus();
+    }
+  }
+
+  toggleDropdown(value?: boolean) {
+    this.isExpanded = (value !== undefined) ? value : !this.isExpanded;
+    this.dropDownClass = this.isExpanded ? this.settings.dropdownMenuExpandedClass : this.settings.dropdownMenuClass;
   }
 
   /**
@@ -346,60 +363,59 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
    * @param value
    */
   writeValue(value: any): void {
-    if (!value || !value.length) {
-      value = void 0;
-    }
+    // set value
     this._value = value;
-    this._arrayOfValues = this.multiValue ? (value || []) : [];
-
     this.elementRef.nativeElement.value = value;
-    this.triggerOnChange(this.elementRef.nativeElement); // trigger on change event
+
+    // trigger change
+    if ('createEvent' in document) { // if standard (non IE) browser
+      const event = document.createEvent('HTMLEvents');
+      event.initEvent('change', false, true);
+      this.elementRef.nativeElement.dispatchEvent(event);
+    } else {
+      // we need to cast since fireEvent is not standard functionality and works only in IE
+      this.elementRef.nativeElement.fireEvent('onchange');
+    }
     this.onChange(value);
   }
 
-  triggerOnChange(element: any) {
-    if ('createEvent' in document) {
-      let evt = document.createEvent('HTMLEvents');
-      evt.initEvent('change', false, true);
-      element.dispatchEvent(evt);
-    } else {
-      element.fireEvent('onchange');
-    }
+  setDisabledState(value: boolean): void {
+    this.isDisabled = value;
+    this.renderer.setProperty(this.elementRef.nativeElement, 'disabled', value);
   }
 
-  setDisabledState(isDisabled: boolean): void { this._isDisabled = isDisabled; }
   onChange = (_: any) => { /**/ };
   onTouched = () => { /**/ };
-  registerOnChange(fn: (_: any) => void): void { this.onChange = fn; }
-  registerOnTouched(fn: () => void): void { this.onTouched = fn; }
 
-  /**
-   * Emit value change event
-   * @param value
-   * @private
-   */
-  // private _emitChangedEvent(value: string) {
-  //  // only if wait is below threshold
-  //  if (this._accumulatedTimeout < MAXIMAL_WAIT) {
-  //    this.cleanUpTimeout();
-  //  }
-  //  // fire up new timeout
-  //  this._timeOut = window.setTimeout(() => {
-  //    let existingValues = this._arrayOfValues;
-  //    this.valueChange.emit({ value: value, existing: existingValues });
-  //    this._timeOut = null;
-  //    this._accumulatedTimeout = 0;
-  //  }, MINIMAL_WAIT);
-  // }
+  registerOnChange(fn: (_: any) => void): void {
+    this.onChange = fn;
+  }
 
-  /**
-   * Clear current timeout
-   */
-  private cleanUpTimeout() {
-    if (this._timeOut) {
-      this._accumulatedTimeout += MINIMAL_WAIT;
-      clearTimeout(this._timeOut);
-      this._timeOut = null;
+  registerOnTouched(fn: () => void): void {
+    this.onTouched = fn;
+  }
+
+  private filterSuggestion(filter: string) {
+    return (value: any): boolean => {
+      if (this.values.includes(value)) {
+        return false;
+      }
+      if (typeof value === 'string') {
+        return sanitizeString(value).includes(filter);
+      } else {
+        return sanitizeString(value[this.nameField]).includes(filter) && !this.values.includes(value);
+      }
+    };
+  }
+
+  private hasMatch(value: string): boolean {
+    for (const key in this.matches) {
+      if (typeof this.matches[key] === 'string' && this.matches[key] === value) {
+        return true;
+      } else if ((<any> this.matches[key])[this.nameField] === value) {
+        return true;
+      }
     }
+    return false;
   }
 }

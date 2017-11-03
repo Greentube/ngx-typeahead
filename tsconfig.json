@@ -1,23 +1,22 @@
 {
+  "compileOnSave": false,
   "compilerOptions": {
-    "noImplicitAny": true,
-    "module": "es2015",
-    "target": "es5",
+    "module": "commonjs",
+    "declaration": false,
+    "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "declaration": true,
-    "moduleResolution": "node",
+    "target": "es5",
     "noUnusedLocals": true,
-    "types": [
-      "hammerjs",
-      "jasmine",
-      "node"
+    "typeRoots": [
+      "node_modules/@types"
     ],
-    "lib": ["es2015", "dom"]
+    "lib": ["es2016", "dom"]
   },
   "files": [
     "index.ts",
     "./src/typeahead.component.ts",
+    "./src/typeahead.interface.ts",
     "./tests/typeahead.component.spec.ts"
   ],
   "exclude": [
@@ -25,7 +24,6 @@
     "bundles"
   ],
   "angularCompilerOptions": {
-    "strictMetadataEmit": true,
-    "skipTemplateCodegen": true
+    "strictMetadataEmit": true
   }
 }

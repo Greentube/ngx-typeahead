@@ -2,18 +2,11 @@ const helpers = require('./config/helpers');
 const webpack = require('webpack');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 
-/**
- * Webpack Plugins
- */
-const ProvidePlugin = require('webpack/lib/ProvidePlugin');
-const DefinePlugin = require('webpack/lib/DefinePlugin');
-const LoaderOptionsPlugin = require('webpack/lib/LoaderOptionsPlugin');
-
 module.exports = {
   devtool: '#source-map',
 
   resolve: {
-    extensions: ['.ts', '.js', '.css', '.scss', '.html']
+    extensions: ['.ts', '.js', '.css', '.scss']
   },
 
   entry: helpers.root('index.ts'),
@@ -21,13 +14,13 @@ module.exports = {
   output: {
     path: helpers.root('bundles'),
     publicPath: '/',
-    filename: 'ngx-modal.umd.js',
+    filename: 'ngx-type-ahead.umd.js',
     libraryTarget: 'umd',
-    library: 'ngx-modal'
+    library: 'ngx-type-ahead'
   },
 
   // require those dependencies but don't bundle them
-  externals: [/^\@angular\//, /^rxjs\//],
+  externals: [/^@angular\//, /^rxjs\//],
   target: 'node',
 
   module: {
@@ -38,7 +31,7 @@ module.exports = {
         options: {
           declaration: false
         },
-        exclude: [/\.spec\.ts$/, helpers.root('node_modules')]
+        exclude: [/\.spec\.ts$/, helpers.root('node_modules'), helpers.root('demo')]
       },
       {
         test: /\.ts$/,

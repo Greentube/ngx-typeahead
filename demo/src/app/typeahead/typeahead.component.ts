@@ -1,6 +1,6 @@
 import {
   Component, forwardRef, Input, OnDestroy, ElementRef, Output,
-  EventEmitter, AfterViewInit, Inject, OnInit, Renderer2, HostListener
+  EventEmitter, AfterViewInit, Inject, OnInit, Renderer2, HostListener, HostBinding
 } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/from';
@@ -29,7 +29,37 @@ const sanitizeString = (text: string) =>
  * <typeahead formControlName="myControlName" [suggestions]="Observable.of(['abc', 'def',...])"></typeahead>
  */
 @Component({
-  selector: 'typeahead',
+  selector: 'type-ahead',
+  styles: [`
+    :host {
+        height: auto;
+        position: relative;
+        display: inline-flex;
+        flex-wrap: wrap;
+        border-width: thin;
+        border-style: inset;
+        border-color: initial;
+        -webkit-appearance: textfield;
+        -webkit-rtl-ordering: logical;
+        user-select: text;
+        cursor: auto;
+    }
+    :host[disabled] {
+        cursor: not-allowed;
+    }
+    :host[disabled] input {
+        background-color: inherit;
+    }
+    :host .typeahead-badge {
+        white-space: nowrap;
+    }
+    :host input {
+        border: none;
+        outline: 0;
+        line-height: 1;
+        flex: 1;
+    }
+  `],
   template: `
     <span [ngClass]="settings.tagClass" class="typeahead-badge" *ngFor="let value of values">
       {{ value }}
@@ -58,12 +88,7 @@ const sanitizeString = (text: string) =>
       </div>
     </div>
   `,
-  styleUrls: ['./typeahead.component.scss'],
-  providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => TypeaheadComponent), multi: true }],
-  host: {
-    '[attr.disabled]': 'isDisabled || null',
-    '[class.multi]': 'multi'
-  }
+  providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => TypeaheadComponent), multi: true }]
 })
 export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, OnDestroy, OnInit {
   /** suggestions list - array of strings, objects or Observable */
@@ -71,13 +96,13 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   /** template for items in drop down */
   // @Input() public suggestionTemplate: TemplateRef<any>;
   /** field to use from objects as name */
-  @Input() nameField: string = 'name';
+  @Input() nameField = 'name';
   /** field to use from objects as id */
-  @Input() idField: string = 'id';
+  @Input() idField = 'id';
   /** allow custom values */
-  @Input() custom: boolean = true;
+  @Input() custom = true;
   /** allow multiple values */
-  @Input() multi: boolean = false;
+  @Input() multi = false;
 
   /** Value of form control */
   @Input()
@@ -89,13 +114,17 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     return this._settings;
   }
 
+  /** UI Bindings */
+  @HostBinding('class.multi') get multiBinding() { return this.multi; }
+  @HostBinding('attr.disabled') get disabledBinding() { return this.isDisabled || null; }
+
   /** Output value change */
   @Output() valueChange = new EventEmitter();
 
   // ui state
-  isDisabled: boolean = false;
-  isExpanded: boolean = false;
-  dropDownClass: string = '';
+  isDisabled = false;
+  isExpanded = false;
+  dropDownClass = '';
   matches: string[] | Object[] = [];
 
   // values
@@ -340,9 +369,9 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
 
     // trigger change
     if ('createEvent' in document) { // if standard (non IE) browser
-      let evt = document.createEvent('HTMLEvents');
-      evt.initEvent('change', false, true);
-      this.elementRef.nativeElement.dispatchEvent(evt);
+      const event = document.createEvent('HTMLEvents');
+      event.initEvent('change', false, true);
+      this.elementRef.nativeElement.dispatchEvent(event);
     } else {
       // we need to cast since fireEvent is not standard functionality and works only in IE
       this.elementRef.nativeElement.fireEvent('onchange');
@@ -367,7 +396,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   }
 
   private filterSuggestion(filter: string) {
-    return (value: string | Object): boolean => {
+    return (value: any): boolean => {
       if (this.values.includes(value)) {
         return false;
       }
@@ -380,10 +409,10 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   }
 
   private hasMatch(value: string): boolean {
-    for (let key in this.matches) {
+    for (const key in this.matches) {
       if (typeof this.matches[key] === 'string' && this.matches[key] === value) {
         return true;
-      } else if (this.matches[key][this.nameField] === value) {
+      } else if ((<any> this.matches[key])[this.nameField] === value) {
         return true;
       }
     }
