@@ -1,6 +1,24 @@
 /* You can add global styles to this file, and also import other style files */
 @import '../../node_modules/bootstrap/scss/bootstrap';
+@import '../../node_modules/bootstrap/scss/variables';
 
-body {
+typeahead[disabled] {
+  background-color: $input-disabled-bg;
 
+  .btn.badge {
+    opacity: 0.5;
+  }
 }
+
+typeahead {
+  .btn.badge {
+    margin-right: $spacer / 4;
+    margin-top: $spacer / 4;
+  }
+
+  &.multi input {
+    margin-top: $spacer / 4;
+    padding-right: $spacer;
+  }
+}
+
