@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { DataService } from './data.service';
 import { ICountry } from './countries';
+import { Observable } from "rxjs";
 
 @Component({
   selector: 'app-root',
@@ -12,6 +13,7 @@ export class AppComponent implements OnInit {
   myForm: FormGroup;
 
   hobbies: string[];
+  hobbies$: Observable<string[]>;
   countries: ICountry[];
 
   constructor(private formBuilder: FormBuilder, private dataService: DataService) {
@@ -23,8 +25,9 @@ export class AppComponent implements OnInit {
     this.initializeForm();
   }
 
-  private fetchData(){
-    this.dataService.getHobbies().subscribe((hobbies: string[]) => {
+  private fetchData() {
+    this.hobbies$ = this.dataService.getHobbies();
+    this.hobbies$.subscribe((hobbies: string[]) => {
       this.hobbies = hobbies;
     });
     this.dataService.getCountries().subscribe((countries: ICountry[]) => {
@@ -32,7 +35,7 @@ export class AppComponent implements OnInit {
     });
   }
 
-  private initializeForm(){
+  private initializeForm() {
     this.myForm = this.formBuilder.group({
       hobbySingleCustom: '',
       hobbySingleFixed: '',

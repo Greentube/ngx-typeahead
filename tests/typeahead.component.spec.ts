@@ -1,6 +1,7 @@
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { TypeaheadComponent } from '../src/typeahead.component';
+import { Observable } from 'rxjs';
 
 describe('TypeaheadComponent', () => {
   let
@@ -26,9 +27,18 @@ describe('TypeaheadComponent', () => {
     expect(component instanceof TypeaheadComponent).toBeTruthy('Should be instance of TypeaheadComponent');
   });
 
-  it('should set suggestions to matches', fakeAsync(() => {
+  it('should copy suggestions to allmatches', fakeAsync(() => {
     const suggestions = ['ABC', 'DEF', 'GHI'];
     component.suggestions = suggestions;
+    fixture.detectChanges();
+    tick();
+    expect(component.allMatches).toEqual(suggestions);
+  }));
+
+  it('should copy observable suggestions to allmatches', fakeAsync(() => {
+    const suggestions: string[] = ['ABC', 'DEF', 'GHI'];
+    const suggestions$: Observable<string[]> = Observable.of(suggestions);
+    component.suggestions = suggestions$;
     fixture.detectChanges();
     tick();
     expect(component.allMatches).toEqual(suggestions);

@@ -36,35 +36,35 @@ const sanitizeString = (text: string) =>
 @Component({
   selector: 'type-ahead',
   styles: [`
-      :host {
-          height: auto;
-          min-height: 1em;
-          position: relative;
-          display: inline-flex;
-          flex-wrap: wrap;
-          border-width: thin;
-          border-style: inset;
-          border-color: initial;
-          -webkit-appearance: textfield;
-          -webkit-rtl-ordering: logical;
-          user-select: text;
-          cursor: auto;
-      }
-      :host[disabled] {
-          cursor: not-allowed;
-      }
-      :host[disabled] input {
-          background-color: inherit;
-      }
-      :host .typeahead-badge {
-          white-space: nowrap;
-      }
-      :host input {
-          border: none;
-          outline: 0;
-          line-height: 1;
-          flex: 1;
-      }
+    :host {
+        height: auto;
+        min-height: 1em;
+        position: relative;
+        display: inline-flex;
+        flex-wrap: wrap;
+        border-width: thin;
+        border-style: inset;
+        border-color: initial;
+        -webkit-appearance: textfield;
+        -webkit-rtl-ordering: logical;
+        user-select: text;
+        cursor: auto;
+    }
+    :host[disabled] {
+        cursor: not-allowed;
+    }
+    :host[disabled] input {
+        background-color: inherit;
+    }
+    :host .typeahead-badge {
+        white-space: nowrap;
+    }
+    :host input {
+        border: none;
+        outline: 0;
+        line-height: 1;
+        flex: 1;
+    }
   `],
   template: `
     <span [ngClass]="settings.tagClass" class="typeahead-badge" *ngFor="let value of values">
@@ -199,7 +199,11 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
    * On component initialization
    */
   ngOnInit() {
-    this.suggestionsInit(Observable.from(this.suggestions));
+    this.suggestionsInit(this.suggestions instanceof Observable ?
+      this.suggestions.mergeMap((value: any[]) => {
+        return Observable.from(value);
+      }) :
+      Observable.from(this.suggestions));
     this.toggleDropdown(false);
     this._inputChangeEvent.emit('');
   }

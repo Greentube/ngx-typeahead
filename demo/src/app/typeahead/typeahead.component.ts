@@ -199,7 +199,11 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
    * On component initialization
    */
   ngOnInit() {
-    this.suggestionsInit(Observable.from(this.suggestions));
+    this.suggestionsInit(this.suggestions instanceof Observable ?
+      this.suggestions.mergeMap((value: any[]) => {
+        return Observable.from(value);
+      }) :
+      Observable.from(this.suggestions));
     this.toggleDropdown(false);
     this._inputChangeEvent.emit('');
   }
