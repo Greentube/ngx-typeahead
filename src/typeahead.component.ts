@@ -460,6 +460,6 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   }
 
   private extractIdentifier(value: any) {
-    return this.complex ? value[this.idField] : value
+    return this.complex ? value[this.idField] : value;
   }
 }

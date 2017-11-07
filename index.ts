@@ -1,9 +1,9 @@
 import { TypeaheadComponent } from './src/typeahead.component';
 import { NgModule, ModuleWithProviders } from '@angular/core';
-// import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @NgModule({
-//  imports: [ReactiveFormsModule, FormsModule],
+  imports: [CommonModule],
   declarations: [TypeaheadComponent],
   exports: [TypeaheadComponent]
 })
