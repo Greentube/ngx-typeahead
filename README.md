@@ -1,5 +1,7 @@
 # ngx-typeahead
 [![Build Status](https://travis-ci.org/Greentube/ngx-typeahead.svg?branch=master)](https://travis-ci.org/Greentube/ngx-typeahead)
+[![Build Status](https://circleci.com/gh/Greentube/ngx-typeahead.svg?style=shield)](https://circleci.com/gh/Greentube/ngx-typeahead)
+
 > Typeahead multi-select dropdown component for angular
 
 # Table of contents:

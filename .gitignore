@@ -22,6 +22,8 @@ node_modules/
 coverage
 *.metadata.json
 bundles/
+*.ngfactory.ts
+*.ngsummary.json
 
 #################
 ## IDEs

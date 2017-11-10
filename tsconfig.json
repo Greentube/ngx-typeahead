@@ -8,8 +8,10 @@
     "experimentalDecorators": true,
     "target": "es5",
     "noUnusedLocals": true,
-    "typeRoots": [
-      "node_modules/@types"
+    "types": [
+      "hammerjs",
+      "jasmine",
+      "node"
     ],
     "lib": ["es2016", "dom"]
   },
