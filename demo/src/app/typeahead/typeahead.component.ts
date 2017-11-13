@@ -37,33 +37,33 @@ const sanitizeString = (text: string) =>
   selector: 'type-ahead',
   styles: [`
     :host {
-        height: auto;
-        min-height: 1em;
-        position: relative;
-        display: inline-flex;
-        flex-wrap: wrap;
-        border-width: thin;
-        border-style: inset;
-        border-color: initial;
-        -webkit-appearance: textfield;
-        -webkit-rtl-ordering: logical;
-        user-select: text;
-        cursor: auto;
+      height: auto;
+      min-height: 1em;
+      position: relative;
+      display: inline-flex;
+      flex-wrap: wrap;
+      border-width: thin;
+      border-style: inset;
+      border-color: initial;
+      -webkit-appearance: textfield;
+      -webkit-rtl-ordering: logical;
+      user-select: text;
+      cursor: auto;
     }
     :host[disabled] {
-        cursor: not-allowed;
+      cursor: not-allowed;
     }
     :host[disabled] input {
-        background-color: inherit;
+      background-color: inherit;
     }
     :host .typeahead-badge {
-        white-space: nowrap;
+      white-space: nowrap;
     }
     :host input {
-        border: none;
-        outline: 0;
-        line-height: 1;
-        flex: 1;
+      border: none;
+      outline: 0;
+      line-height: 1;
+      flex: 1;
     }
   `],
   template: `
@@ -460,6 +460,6 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   }
 
   private extractIdentifier(value: any) {
-    return this.complex ? value[this.idField] : value
+    return this.complex ? value[this.idField] : value;
   }
 }
