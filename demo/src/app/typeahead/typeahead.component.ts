@@ -78,17 +78,17 @@ const sanitizeString = (text: string) =>
            (keydown)="handleInput($event)"
            (paste)="handleInput($event)"
            (click)="toggleDropdown(true)"/>
-    <i *ngIf="!isDisabled" (click)="toggleDropdown()"
+    <i *ngIf="!isDisabled" (click)="toggleDropdown()" tabindex="-1"
        [ngClass]="settings.dropdownToggleClass"></i>
     <div role="menu" [attr.class]="dropDownClass">
-      <button *ngFor="let match of matches" type="button" role="menuitem"
+      <button *ngFor="let match of matches" type="button" role="menuitem" tabindex="-1"
               [ngClass]="settings.dropdownMenuItemClass"
               (mouseup)="handleButton($event, match)"
               (keydown)="handleButton($event, match)"
               (keyup)="handleButton($event, match)">
         {{ complex ? match[nameField] : match }}
       </button>
-      <div role="menuitem" *ngIf="!matches.length && !custom"
+      <div role="menuitem" *ngIf="!matches.length && !custom" tabindex="-1"
            [ngClass]="settings.dropdownMenuItemClass">
         {{ settings.noMatchesText }}
       </div>
