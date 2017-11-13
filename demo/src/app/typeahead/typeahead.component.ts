@@ -83,7 +83,7 @@ const sanitizeString = (text: string) =>
     <div role="menu" [attr.class]="dropDownClass">
       <button *ngFor="let match of matches" type="button" role="menuitem"
               [ngClass]="settings.dropdownMenuItemClass"
-              (mouseup)="setValue(match, true)"
+              (mouseup)="handleButton($event, match)"
               (keydown)="handleButton($event, match)"
               (keyup)="handleButton($event, match)">
         {{ complex ? match[nameField] : match }}
@@ -315,8 +315,14 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
    * @param event
    * @param value
    */
-  handleButton(event: KeyboardEvent, value: any) {
+  handleButton(event: KeyboardEvent | MouseEvent, value: any) {
     const target = (event.target as HTMLButtonElement);
+
+    if (event instanceof MouseEvent) {
+      this.setValue(value, true);
+      this._inputChangeEvent.emit(this._input.value);
+      return;
+    }
 
     if (event.type === KEY_UP) {
       if (event.key === ENTER) {  // enter
