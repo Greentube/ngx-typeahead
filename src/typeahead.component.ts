@@ -25,7 +25,7 @@ const BACKSPACE = 'Backspace';
  * @param {string} text
  */
 const sanitizeString = (text: string) =>
-  text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 
 /***
  * Usage:
