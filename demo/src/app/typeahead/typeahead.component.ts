@@ -384,7 +384,12 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   }
 
   toggleDropdown(value?: boolean) {
-    this.isExpanded = (value !== undefined) ? value : !this.isExpanded;
+    if (value === undefined) {
+      this._input.focus();
+      this.isExpanded = !this.isExpanded;
+    } else {
+      this.isExpanded = value;
+    }
     this.dropDownClass = this.isExpanded ? this.settings.dropdownMenuExpandedClass : this.settings.dropdownMenuClass;
   }
 
