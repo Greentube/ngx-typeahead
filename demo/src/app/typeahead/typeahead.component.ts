@@ -188,10 +188,15 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
       this._inputChangeEvent.emit('');
       return;
     }
-    // if not match then cleanup the values
-    if ((!this.custom || this.complex) && !this.hasMatch(this._input.value)) {
-      this._input.value = this.value = null;
-      this._inputChangeEvent.emit('');
+
+    // trim values
+    if (!this.custom || this.complex) {
+      this._input.value = this._input.value.trim();
+      // if not match then cleanup the values
+      if (!this.hasMatch(this._input.value)) {
+        this._input.value = this.value = null;
+        this._inputChangeEvent.emit('');
+      }
     }
   }
 
