@@ -88,7 +88,7 @@ const sanitizeString = (text: string) =>
               (keyup)="handleButton($event, match)">
         {{ complex ? match[nameField] : match }}
       </button>
-      <div role="menuitem" *ngIf="!matches.length && !custom" tabindex="-1"
+      <div role="menuitem" *ngIf="!matches.length" tabindex="-1"
            [ngClass]="settings.dropdownMenuItemClass">
         {{ settings.noMatchesText }}
       </div>
