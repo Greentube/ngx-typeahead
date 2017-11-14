@@ -475,14 +475,18 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   }
 
   private hasMatch(value: string | Object): boolean {
+    const sanitizedValue = typeof value === 'string' ? sanitizeString(value) : null;
+
     for (const key in this.matches) {
       if (typeof this.matches[key] === 'string') {
-        if (this.matches[key] === value) {
+        const sanitizedMatch = sanitizeString(<string> this.matches[key]);
+        if (sanitizedMatch === sanitizedValue) {
           return true;
         }
       } else {
         if (typeof value === 'string') {
-          if ((<any> this.matches[key])[this.nameField] === value) {
+          const sanitizedMatch = sanitizeString((<Object> this.matches[key])[this.nameField]);
+          if (sanitizedMatch === sanitizedValue) {
             return true;
           }
         } else {
@@ -516,7 +520,8 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   private extractIdentifier(value: string | Object) {
     if (this.complex) {
       if (typeof value === 'string') {
-        const match: Object = (<Object[]> this.allMatches).find(item => item[this.nameField] === value);
+        const sanitizedValue = sanitizeString(value);
+        const match: Object = (<Object[]> this.allMatches).find(item => sanitizeString(item[this.nameField]) === sanitizedValue);
         if (match) {
           return match[this.idField];
         }
