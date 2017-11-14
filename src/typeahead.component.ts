@@ -58,12 +58,19 @@ const sanitizeString = (text: string) =>
     }
     :host .typeahead-badge {
       white-space: nowrap;
+      cursor: pointer;
     }
     :host input {
       border: none;
       outline: 0;
       line-height: 1;
       flex: 1;
+    }
+    :host [role="menuitem"] {
+      cursor: pointer;
+    }
+    :host [role="menuitem"][disabled] {
+      cursor: not-allowed;
     }
   `],
   template: `
@@ -88,7 +95,7 @@ const sanitizeString = (text: string) =>
               (keyup)="handleButton($event, match)">
         {{ complex ? match[nameField] : match }}
       </button>
-      <div role="menuitem" *ngIf="!matches.length" tabindex="-1"
+      <div role="menuitem" *ngIf="!matches.length" tabindex="-1" aria-disabled="true" disabled="true"
            [ngClass]="settings.dropdownMenuItemClass">
         {{ settings.noMatchesText }}
       </div>
