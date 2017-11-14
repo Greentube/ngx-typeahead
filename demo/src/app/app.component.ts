@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { DataService } from './data.service';
 import { ICountry } from './countries';
 import { Observable } from "rxjs";
+import { TypeaheadSettings } from './typeahead/typeahead.interface';
 
 @Component({
   selector: 'app-root',
@@ -15,6 +16,10 @@ export class AppComponent implements OnInit {
   hobbies: string[];
   hobbies$: Observable<string[]>;
   countries: ICountry[];
+
+  customSettings: TypeaheadSettings = {
+    suggestionsLimit: 0
+  };
 
   constructor(private formBuilder: FormBuilder, private dataService: DataService) {
     // ...

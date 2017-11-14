@@ -20,5 +20,10 @@ type-ahead {
     margin-top: $spacer / 4;
     padding-right: $spacer;
   }
+
+  .dropdown-menu {
+    max-height: 10em;
+    overflow-y: auto;
+  }
 }
 

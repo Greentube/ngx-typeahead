@@ -74,7 +74,7 @@ Type representing suggestions. Can be:
 export interface TypeaheadSettings {
   /** how much should be user's typing debounced. Default is `50` */
   typeDelay?: number;
-  /** maximal number of visible items in dropdown. Default is `10` */
+  /** maximal number of visible items in dropdown. If value is 0, list will not be limited. Default is `10` */
   suggestionsLimit?: number;
   /** text shown when there are no matches. Default is `No matches found` */
   noMatchesText?: string;

@@ -139,6 +139,11 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   // values
   values: any[] = [];
 
+  /**
+   * Default values for TypeaheadSettings
+   * @type {{suggestionsLimit: number; typeDelay: number; noMatchesText: string; tagClass: string; tagRemoveIconClass: string; dropdownMenuClass: string; dropdownMenuExpandedClass: string; dropdownMenuItemClass: string; dropdownToggleClass: string}}
+   * @private
+   */
   private _settings: TypeaheadSettings = {
     suggestionsLimit: 10,
     typeDelay: 50,
@@ -218,13 +223,15 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
       .debounceTime(this.settings.typeDelay)
       .mergeMap((value: string) => {
         const normalizedValue = sanitizeString(value);
-        return suggestion$
-          .filter(this.filterSuggestion(normalizedValue))
-          .take(this.settings.suggestionsLimit)
-          .toArray();
-      }).subscribe((matches: string[] | Object[]) => {
-      this.matches = matches;
-    });
+        const filteredSuggestions$ = suggestion$.filter(this.filterSuggestion(normalizedValue));
+
+        return this.settings.suggestionsLimit ?
+          filteredSuggestions$.take(this.settings.suggestionsLimit).toArray() :
+          filteredSuggestions$.toArray();
+      })
+      .subscribe((matches: string[] | Object[]) => {
+        this.matches = matches;
+      });
     suggestion$.toArray().subscribe((suggestions: string[] | Object[]) => {
       this.allMatches = suggestions;
     });
