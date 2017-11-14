@@ -529,7 +529,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
 
   private extractName(value: string | Object) {
     if (this.complex && typeof value !== 'string') {
-      return value[this.idField];
+      return value[this.nameField];
     }
     return value;
   }
