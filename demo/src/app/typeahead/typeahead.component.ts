@@ -357,11 +357,15 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     }
   }
 
+  /**
+   * Set value to list of values or as a single value
+   * @param value
+   * @param {boolean} collapseMenu
+   */
   setValue(value: any, collapseMenu?: boolean) {
-    if (!this.custom && !this.hasMatch(value)) {
+    if ((!this.custom || this.complex) && !this.hasMatch(value)) {
       return;
     }
-
     if (this.multi) {
       if (!this.values.includes(value)) {
         this.value = this.values.concat(value).map(this.extractIdentifier.bind(this));
@@ -378,6 +382,10 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     this._input.focus();
   }
 
+  /**
+   * Remove value from list of values or clear out the value
+   * @param value
+   */
   removeValue(value: any) {
     const index = this.values.indexOf(value);
     if (index !== -1) {
@@ -459,12 +467,22 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     };
   }
 
-  private hasMatch(value: string): boolean {
+  private hasMatch(value: string | Object): boolean {
     for (const key in this.matches) {
-      if (typeof this.matches[key] === 'string' && this.matches[key] === value) {
-        return true;
-      } else if ((<any> this.matches[key])[this.nameField] === value) {
-        return true;
+      if (typeof this.matches[key] === 'string') {
+        if (this.matches[key] === value) {
+          return true;
+        }
+      } else {
+        if (typeof value === 'string') {
+          if ((<any> this.matches[key])[this.nameField] === value) {
+            return true;
+          }
+        } else {
+          if (this.matches[key] === value) {
+            return true;
+          }
+        }
       }
     }
     return false;

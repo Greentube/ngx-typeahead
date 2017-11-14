@@ -24,6 +24,8 @@ type-ahead {
   .dropdown-menu {
     max-height: 10em;
     overflow-y: auto;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
