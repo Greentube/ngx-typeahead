@@ -506,11 +506,24 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     return null;
   }
 
-  private extractIdentifier(value: any) {
-    return this.complex ? value[this.idField] : value;
+  private extractIdentifier(value: string | Object) {
+    if (this.complex) {
+      if (typeof value === 'string') {
+        const match: Object = (<Object[]> this.allMatches).find(item => item[this.nameField] === value);
+        if (match) {
+          return match[this.idField];
+        }
+        throw Error('Critical error: Match ID could not be extracted.');
+      }
+      return value[this.idField];
+    }
+    return value;
   }
 
-  private extractName(value: any) {
-    return this.complex ? value[this.nameField] : value;
+  private extractName(value: string | Object) {
+    if (this.complex && typeof value !== 'string') {
+      return value[this.idField];
+    }
+    return value;
   }
 }
