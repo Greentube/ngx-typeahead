@@ -319,7 +319,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
               this.removeValue(this.values[this.values.length - 1]);
             }
           }
-        } else if (this.complex && event.type === KEY_DOWN) {
+        } else if (this.complex && !this.multi && event.type === KEY_DOWN) {
           this.value = null;
         }
       }
