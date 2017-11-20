@@ -1,5 +1,8 @@
 var testWebpackConfig = require('./webpack.test.js');
 
+const ENV = process.env.npm_lifecycle_event;
+const isTestWatch = ENV === 'test-watch';
+
 module.exports = function (config) {
 
   var configuration = {
@@ -85,6 +88,12 @@ module.exports = function (config) {
 
     singleRun: true
   };
+
+  if(isTestWatch) {
+    configuration.browsers = ['Chrome'];
+    configuration.reporters.push('kjhtml');
+    configuration.plugins.push(require('karma-jasmine-html-reporter'));
+  }
 
   if (process.env.TRAVIS) {
     configuration.browsers = ['Chrome_travis_ci'];

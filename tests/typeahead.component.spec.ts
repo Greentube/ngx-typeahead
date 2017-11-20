@@ -2,6 +2,12 @@ import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testin
 import { ReactiveFormsModule } from '@angular/forms';
 import { TypeaheadComponent } from '../src/typeahead.component';
 import { Observable } from 'rxjs';
+import { TypeaheadSuggestions } from '../src/typeahead.interface';
+
+const KEY_UP = 'keyup';
+const KEY_DOWN = 'keydown';
+const ENTER = 'Enter';
+const BACKSPACE = 'Backspace';
 
 describe('TypeaheadComponent', () => {
   let
@@ -37,7 +43,7 @@ describe('TypeaheadComponent', () => {
 
   it('should copy observable suggestions to allmatches', fakeAsync(() => {
     const suggestions: string[] = ['ABC', 'DEF', 'GHI'];
-    const suggestions$: Observable<string[]> = Observable.of(suggestions);
+    const suggestions$: TypeaheadSuggestions = Observable.of(suggestions);
     component.suggestions = suggestions$;
     fixture.detectChanges();
     tick();
@@ -93,7 +99,7 @@ describe('TypeaheadComponent', () => {
 
     const input = (<any> component)._input;
     expect(component.isExpanded).toBeFalsy();
-    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+    input.dispatchEvent(new KeyboardEvent(KEY_DOWN, { key: 'a' }));
     fixture.detectChanges();
     expect(component.isExpanded).toBeTruthy();
   }));
@@ -105,11 +111,83 @@ describe('TypeaheadComponent', () => {
     tick();
 
     const input = (<any> component)._input;
-    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+    input.dispatchEvent(new KeyboardEvent(KEY_DOWN, { key: 'a' }));
     fixture.detectChanges();
     expect(component.isExpanded).toBeTruthy();
-    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    input.dispatchEvent(new KeyboardEvent(KEY_DOWN, { key: 'Escape' }));
     fixture.detectChanges();
     expect(component.isExpanded).toBeFalsy();
   }));
+
+  it('should limit the number of suggestions shown', fakeAsync(() => {
+    const suggestions = ['batman', 'flash', 'aquaman', 'orin', 'robin', 'spectre'];
+    component.suggestions = suggestions;
+    component.settings.suggestionsLimit = 2;
+    fixture.detectChanges();
+
+    const input = (<any> component)._input;
+
+    input.value = 'a';
+    input.dispatchEvent(new KeyboardEvent(KEY_UP, { key: 'a' }));
+    jasmine.clock().tick(50);
+    fixture.detectChanges();
+
+    const dropDownItems = fixture.nativeElement.querySelectorAll('.dropdown-menu .dropdown-item');
+
+    expect(component.isExpanded).toBeTruthy();
+    expect(dropDownItems.length).toBe(2);
+  }));
+
+  it('multi - should be able to enter new items with Enter key', fakeAsync(() => {
+    const suggestions = ['batman', 'flash', 'aquaman', 'orin', 'robin', 'spectre'];
+    component.suggestions = suggestions;
+    component.multi = true;
+    fixture.detectChanges();
+    const customValue1 = 'hulk';
+    const customValue2 = 'antman';
+
+    const input = (<any> component)._input;
+
+    // enter Hulk
+    input.value = customValue1;
+    input.dispatchEvent(new KeyboardEvent(KEY_UP, { key: ENTER }));
+    jasmine.clock().tick(50);
+    fixture.detectChanges();
+
+    // Enter Antman
+    input.value = customValue2;
+    input.dispatchEvent(new KeyboardEvent(KEY_UP, { key: ENTER }));
+    jasmine.clock().tick(50);
+    fixture.detectChanges();
+
+    const customItems = fixture.nativeElement.querySelectorAll('.typeahead-badge');
+    expect(customItems[0].innerText).toContain(customValue1);
+    expect(customItems[1].innerText).toContain(customValue2);
+  }));
+
+  it('multi - should delete item with Backspace key', fakeAsync(() => {
+    const suggestions = ['batman', 'flash', 'aquaman', 'orin', 'robin', 'spectre'];
+    component.suggestions = suggestions;
+    component.multi = true;
+    fixture.detectChanges();
+    const customValue1 = 'hulk';
+
+    const input = (<any> component)._input;
+
+    // enter Hulk
+    input.value = customValue1;
+    input.dispatchEvent(new KeyboardEvent(KEY_UP, { key: ENTER }));
+    jasmine.clock().tick(50);
+    fixture.detectChanges();
+
+    // delete with backspace
+    input.dispatchEvent(new KeyboardEvent(KEY_DOWN, { key: BACKSPACE }));
+    input.dispatchEvent(new KeyboardEvent(KEY_UP, { key: BACKSPACE }));
+    jasmine.clock().tick(50);
+    fixture.detectChanges();
+
+    const customItems = fixture.nativeElement.querySelectorAll('.typeahead-badge');
+    expect(customItems.length).toBe(0);
+  }));
+
 });
