@@ -20,7 +20,10 @@ karma.conf.js
 copy.js
 tsconfig.json
 tslint.json
+package-lock.json
 !*.metadata.json
+*.ngfactory.ts
+*.ngsummary.json
 !bundles/*.js
 .*
 

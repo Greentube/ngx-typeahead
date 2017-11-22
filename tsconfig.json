@@ -2,7 +2,7 @@
   "compileOnSave": false,
   "compilerOptions": {
     "module": "commonjs",
-    "declaration": false,
+    "declaration": true,
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -13,7 +13,7 @@
       "jasmine",
       "node"
     ],
-    "lib": ["es2016", "dom"]
+    "lib": ["es7", "es2015", "dom"]
   },
   "files": [
     "index.ts",
@@ -26,6 +26,7 @@
     "bundles"
   ],
   "angularCompilerOptions": {
+    "skipTemplateCodegen": true,
     "strictMetadataEmit": true
   }
 }

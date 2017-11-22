@@ -485,7 +485,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
         }
       } else {
         if (typeof value === 'string') {
-          const sanitizedMatch = sanitizeString((<Object> this.matches[key])[this.nameField]);
+          const sanitizedMatch = sanitizeString((<any> this.matches[key])[this.nameField]);
           if (sanitizedMatch === sanitizedValue) {
             return true;
           }
@@ -499,8 +499,8 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     return false;
   }
 
-  private extractNameFromMatches(id: any) {
-    const match = this.extractObjectFromId(id);
+  private extractNameFromMatches(id: any): string {
+    const match: any = this.extractObjectFromId(id);
     if (match) {
       return match[this.nameField];
     } else {
@@ -521,20 +521,20 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     if (this.complex) {
       if (typeof value === 'string') {
         const sanitizedValue = sanitizeString(value);
-        const match: Object = (<Object[]> this.allMatches).find(item => sanitizeString(item[this.nameField]) === sanitizedValue);
+        const match: any = (<Object[]> this.allMatches).find((item: any) => sanitizeString(item[this.nameField]) === sanitizedValue);
         if (match) {
           return match[this.idField];
         }
         throw Error('Critical error: Match ID could not be extracted.');
       }
-      return value[this.idField];
+      return (<any> value)[this.idField];
     }
     return value;
   }
 
   private extractName(value: string | Object) {
     if (this.complex && typeof value !== 'string') {
-      return value[this.nameField];
+      return (<any> value)[this.nameField];
     }
     return value;
   }
