@@ -1,8 +1,9 @@
 import {
-  Component, forwardRef, Input, OnDestroy, ElementRef, Output,
+  Component, forwardRef, Input, OnDestroy, ElementRef, Output, OnChanges,
   EventEmitter, AfterViewInit, Inject, OnInit, Renderer2, HostListener, HostBinding
 } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
+import { Subscription } from 'rxjs/Subscription';
 import 'rxjs/add/observable/from';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/mergeMap';
@@ -42,9 +43,6 @@ const sanitizeString = (text: string) =>
       position: relative;
       display: inline-flex;
       flex-wrap: wrap;
-      border-width: thin;
-      border-style: inset;
-      border-color: initial;
       -webkit-appearance: textfield;
       -webkit-rtl-ordering: logical;
       user-select: text;
@@ -103,7 +101,7 @@ const sanitizeString = (text: string) =>
   `,
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => TypeaheadComponent), multi: true }]
 })
-export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, OnDestroy, OnInit {
+export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, OnDestroy, OnInit, OnChanges {
   /** suggestions list - array of strings, objects or Observable */
   @Input() suggestions: TypeaheadSuggestions = [];
   /** template for items in drop down */
@@ -146,6 +144,9 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   // values
   values: any[] = [];
 
+  private allMatchesSubscription: Subscription;
+  private matchesSubscription: Subscription;
+
   /**
    * Default values for TypeaheadSettings
    * @type {{suggestionsLimit: number; typeDelay: number; noMatchesText: string; tagClass: string; tagRemoveIconClass: string; dropdownMenuClass: string; dropdownMenuExpandedClass: string; dropdownMenuItemClass: string; dropdownToggleClass: string}}
@@ -178,6 +179,10 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
 
   @HostListener('focusout', ['$event'])
   focusOutHandler(event: any) {
+    if (this.isDisabled) {
+      return;
+    }
+
     if (event.relatedTarget) {
       // related target is typeahead, input or one of the buttons
       if (event.relatedTarget === this.elementRef.nativeElement ||
@@ -225,8 +230,16 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     this._inputChangeEvent.emit('');
   }
 
+  ngOnChanges(changes) {
+    if (changes.suggestions && !changes.suggestions.firstChange) {
+      this.allMatchesSubscription.unsubscribe();
+      this.matchesSubscription.unsubscribe();
+      this.ngOnInit();
+    }
+  }
+
   suggestionsInit(suggestion$: Observable<any>) {
-    this._inputChangeEvent
+    this.matchesSubscription = this._inputChangeEvent
       .debounceTime(this.settings.typeDelay)
       .mergeMap((value: string) => {
         const normalizedValue = sanitizeString(value);
@@ -239,7 +252,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
       .subscribe((matches: string[] | Object[]) => {
         this.matches = matches;
       });
-    suggestion$.toArray().subscribe((suggestions: string[] | Object[]) => {
+    this.allMatchesSubscription = suggestion$.toArray().subscribe((suggestions: string[] | Object[]) => {
       this.allMatches = suggestions;
     });
   }
@@ -261,7 +274,8 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
    * Cleanup timeout
    */
   ngOnDestroy(): void {
-    // TODO: cleanup subscriptions
+    this.allMatchesSubscription.unsubscribe();
+    this.matchesSubscription.unsubscribe();
   }
 
   /**
