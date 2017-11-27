@@ -1,33 +1,40 @@
-#################
-## Misc
-#################
-**/.DS_Store
-nbproject
-manifest.mf
-build.xml
-npm-debug.log
+############
+## Project
+############
+
+bundles/
 node_modules/
+coverage/
 
 #################
 ## Compiled
 #################
+
+*.map
+*.metadata.json
+
+*.d.ts
+!demo/src/typings.d.ts
+
 *.js
 !config/*
 !karma.conf.js
-!demo/protractor.conf.js
-*.map
-*.d.ts
-!demo/src/typings.d.ts
+!protractor.conf.js
 !webpack.config.js
-coverage
-*.metadata.json
-bundles/
-*.ngfactory.ts
-*.ngsummary.json
+
+#################
+## Misc
+#################
+
+nbproject
+manifest.mf
+build.xml
+npm-debug.log
 
 #################
 ## IDEs
 #################
+
 .idea
 .project
 .settings
@@ -37,15 +44,11 @@ bundles/
 ## Windows
 ############
 
-# Windows image file caches
 Thumbs.db
-
-# Folder config file
 Desktop.ini
 
 ############
 ## Mac
 ############
 
-# Mac crap
 .DS_Store

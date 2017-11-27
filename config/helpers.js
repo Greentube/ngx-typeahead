@@ -1,10 +1,10 @@
 /**
  * taken from angular2-webpack-starter
  */
-var path = require('path');
+const path = require('path');
 
 // Helper functions
-var ROOT = path.resolve(__dirname, '..');
+const ROOT = path.resolve(__dirname, '..');
 
 function hasProcessFlag(flag) {
     return process.argv.join('').indexOf(flag) > -1;

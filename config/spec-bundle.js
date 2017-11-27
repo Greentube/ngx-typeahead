@@ -26,8 +26,8 @@ require('zone.js/dist/jasmine-patch'); // put here since zone.js 0.6.14
 // RxJS
 require('rxjs/Rx');
 
-var testing = require('@angular/core/testing');
-var browser = require('@angular/platform-browser-dynamic/testing');
+const testing = require('@angular/core/testing');
+const browser = require('@angular/platform-browser-dynamic/testing');
 
 testing.TestBed.initTestEnvironment(
   browser.BrowserDynamicTestingModule,
@@ -43,7 +43,7 @@ testing.TestBed.initTestEnvironment(
  * any file that ends with spec.ts and get its path. By passing in true
  * we say do this recursively
  */
-var testContext = require.context('../tests', true, /\.spec\.ts/);
+const testContext = require.context('../tests', true, /\.spec\.ts/);
 
 /*
  * get all the files, for each file, call the context function
@@ -55,4 +55,4 @@ function requireAll(requireContext) {
 }
 
 // requires and returns all modules that match
-var modules = requireAll(testContext);
+const modules = requireAll(testContext);

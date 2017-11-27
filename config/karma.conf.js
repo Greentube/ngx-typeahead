@@ -1,11 +1,10 @@
-var testWebpackConfig = require('./webpack.test.js');
-
 const ENV = process.env.npm_lifecycle_event;
 const isTestWatch = ENV === 'test-watch';
 
 module.exports = function (config) {
+  const testWebpackConfig = require('./webpack.test.js');
 
-  var configuration = {
+  let configuration = {
     basePath: '',
 
     client:{
