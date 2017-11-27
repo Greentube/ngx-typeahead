@@ -17,7 +17,7 @@ export class AppComponent implements OnInit {
   hobbies$: Observable<string[]>;
   countries: ICountry[];
 
-  customSettings: TypeaheadSettings = {
+  customSettings: Partial<TypeaheadSettings> = {
     suggestionsLimit: 0
   };
 

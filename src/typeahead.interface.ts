@@ -4,16 +4,16 @@ export type TypeaheadSuggestions = string[] | Object[] | Observable<string[]> | 
 
 export interface TypeaheadSettings {
   /** delay of input type debounce */
-  typeDelay?: number;
+  typeDelay: number;
   /** maximal number of visible items */
-  suggestionsLimit?: number;
+  suggestionsLimit: number;
   /** text shown when there are no matches */
-  noMatchesText?: string;
+  noMatchesText: string;
 
-  tagClass?: string;
-  tagRemoveIconClass?: string;
-  dropdownMenuClass?: string;
-  dropdownMenuExpandedClass?: string;
-  dropdownMenuItemClass?: string;
-  dropdownToggleClass?: string;
+  tagClass: string;
+  tagRemoveIconClass: string;
+  dropdownMenuClass: string;
+  dropdownMenuExpandedClass: string;
+  dropdownMenuItemClass: string;
+  dropdownToggleClass: string;
 }

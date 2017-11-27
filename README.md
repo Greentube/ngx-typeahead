@@ -72,20 +72,20 @@ Type representing suggestions. Can be:
 ### TypeaheadSettings
 ```ts
 export interface TypeaheadSettings {
-  /** how much should be user's typing debounced. Default is `50` */
-  typeDelay?: number;
-  /** maximal number of visible items in dropdown. If value is 0, list will not be limited. Default is `10` */
-  suggestionsLimit?: number;
-  /** text shown when there are no matches. Default is `No matches found` */
-  noMatchesText?: string;
+  /** how much should be user's typing debounced */
+  typeDelay: number; // Default is `50`
+  /** maximal number of visible items in dropdown. If value is 0, list will not be limited */
+  suggestionsLimit: number; // Default is `10`
+  /** text shown when there are no matches */
+  noMatchesText: string; // Default is `No matches found`
 
   /** css classes for parts of type-ahead */
-  tagClass?: string; // Default is `btn badge badge-primary`
-  tagRemoveIconClass?: string; // Default is `close`
-  dropdownMenuClass?: string; // Default is `dropdown-menu`
-  dropdownMenuExpandedClass?: string; // Default is `dropdown-menu show`
-  dropdownMenuItemClass?: string; // Default is `dropdown-item`
-  dropdownToggleClass?: string; // Default is `dropdown-toggle`
+  tagClass: string; // Default is `btn badge badge-primary`
+  tagRemoveIconClass: string; // Default is `close`
+  dropdownMenuClass: string; // Default is `dropdown-menu`
+  dropdownMenuExpandedClass: string; // Default is `dropdown-menu show`
+  dropdownMenuItemClass: string; // Default is `dropdown-item`
+  dropdownToggleClass: string; // Default is `dropdown-toggle`
 }
 ```
 

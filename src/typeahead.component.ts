@@ -119,11 +119,11 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
 
   /** Value of form control */
   @Input()
-  set settings(value: TypeaheadSettings) {
+  set settings(value: Partial<TypeaheadSettings>) {
     Object.assign(this._settings, value);
   }
 
-  get settings(): TypeaheadSettings {
+  get settings(): Partial<TypeaheadSettings> {
     return this._settings;
   }
 
