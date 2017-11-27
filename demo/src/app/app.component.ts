@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { DataService } from './data.service';
 import { ICountry } from './countries';
-import { Observable } from 'rxjs';
+import { Observable } from 'rxjs/Observable';
 import { TypeaheadSettings } from 'ngx-type-ahead';
 
 @Component({

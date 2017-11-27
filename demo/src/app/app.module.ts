@@ -4,7 +4,7 @@ import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { DataService } from './data.service';
-import { TypeaheadModule } from '../../../index';
+import { TypeaheadModule } from 'ngx-type-ahead';
 
 @NgModule({
   declarations: [
