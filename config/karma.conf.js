@@ -1,3 +1,4 @@
+'use strict';
 const ENV = process.env.npm_lifecycle_event;
 const isTestWatch = ENV === 'test-watch';
 
