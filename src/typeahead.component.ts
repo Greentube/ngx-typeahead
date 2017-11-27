@@ -1,6 +1,6 @@
 import {
   Component, forwardRef, Input, OnDestroy, ElementRef, Output, OnChanges,
-  EventEmitter, AfterViewInit, Inject, OnInit, Renderer2, HostListener, HostBinding
+  EventEmitter, AfterViewInit, Inject, OnInit, Renderer2, HostListener, HostBinding, SimpleChanges
 } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
@@ -230,7 +230,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     this._inputChangeEvent.emit('');
   }
 
-  ngOnChanges(changes) {
+  ngOnChanges(changes: SimpleChanges) {
     if (changes.suggestions && !changes.suggestions.firstChange) {
       this.allMatchesSubscription.unsubscribe();
       this.matchesSubscription.unsubscribe();
