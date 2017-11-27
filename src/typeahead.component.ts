@@ -85,7 +85,7 @@ const sanitizeString = (text: string) =>
            (click)="toggleDropdown(true)"/>
     <i *ngIf="!isDisabled" (click)="toggleDropdown()" tabindex="-1"
        [ngClass]="settings.dropdownToggleClass"></i>
-    <div role="menu" [attr.class]="dropDownClass">
+    <div role="menu" [attr.class]="dropDownClass" *ngIf="matches.length || !custom">
       <button *ngFor="let match of matches" type="button" role="menuitem" tabindex="-1"
               [ngClass]="settings.dropdownMenuItemClass"
               (mouseup)="handleButton($event, match)"
@@ -149,7 +149,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
 
   /**
    * Default values for TypeaheadSettings
-   * @type {{suggestionsLimit: number; typeDelay: number; noMatchesText: string; tagClass: string; tagRemoveIconClass: string; dropdownMenuClass: string; dropdownMenuExpandedClass: string; dropdownMenuItemClass: string; dropdownToggleClass: string}}
+   * @type TypeaheadSettings
    * @private
    */
   private _settings: TypeaheadSettings = {
@@ -319,10 +319,6 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     this.toggleDropdown(true);
 
     if (this.multi || this.complex) {
-      if (event.type === KEY_UP && (event as KeyboardEvent).key === ENTER && target.value !== '') { // enter and value
-        this.setValue(target.value);
-        this.toggleDropdown(false);
-      }
       if ([KEY_DOWN, KEY_UP].includes(event.type) && (event as KeyboardEvent).key === BACKSPACE) {
         if (target.value === '') { // backspace
           if (event.type === KEY_DOWN) {
@@ -338,6 +334,10 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
         }
       }
     } else if (event.type === KEY_UP) {
+      this.setValue(target.value);
+      if ((event as KeyboardEvent).key === ENTER && target.value !== '') { // enter and value
+        this.toggleDropdown(false);
+      }
       this.setValue(target.value);
     }
     this._inputChangeEvent.emit(target.value);
