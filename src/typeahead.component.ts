@@ -319,6 +319,10 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     this.toggleDropdown(true);
 
     if (this.multi || this.complex) {
+      if (event.type === KEY_UP && (event as KeyboardEvent).key === ENTER && target.value !== '') { // enter and value
+        this.setValue(target.value);
+        this.toggleDropdown(false);
+      }
       if ([KEY_DOWN, KEY_UP].includes(event.type) && (event as KeyboardEvent).key === BACKSPACE) {
         if (target.value === '') { // backspace
           if (event.type === KEY_DOWN) {
@@ -338,7 +342,6 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
       if ((event as KeyboardEvent).key === ENTER && target.value !== '') { // enter and value
         this.toggleDropdown(false);
       }
-      this.setValue(target.value);
     }
     this._inputChangeEvent.emit(target.value);
   }
