@@ -139,13 +139,14 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   isExpanded = false;
   dropDownClass = '';
   matches: string[] | Object[] = [];
-  allMatches: string[] | Object[] = [];
+  allMatches: string[] | Object[]; // leave this undefined as it's important to know when the data arrives
 
   // values
   values: any[] = [];
 
   private allMatchesSubscription: Subscription;
   private matchesSubscription: Subscription;
+  private callbackQueue: Array<() => void> = [];
 
   /**
    * Default values for TypeaheadSettings
@@ -254,6 +255,10 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
       });
     this.allMatchesSubscription = suggestion$.toArray().subscribe((suggestions: string[] | Object[]) => {
       this.allMatches = suggestions;
+      while(this.callbackQueue.length) {
+        // take first one and process it
+        this.callbackQueue.shift().apply(this);
+      }
     });
   }
 
@@ -264,9 +269,16 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     // set value to input
     this._input = this.elementRef.nativeElement.querySelector('input');
     if (!this.multi && this._value) {
-      this._input.value = this.complex ?
-        this.extractNameFromMatches(this._value) :
-        this._value;
+      const callback = () => {
+        this._input.value = this.complex ?
+          this.extractNameFromMatches(this._value) :
+          this._value;
+      };
+      if (this.allMatches || !this.complex) {
+        callback.apply(this);
+      } else {
+        this.callbackQueue.push(callback);
+      }
     }
   }
 
@@ -392,11 +404,11 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     }
     if (this.multi) {
       if (!this.values.includes(value)) {
-        this.value = this.values.concat(value).map(this.extractIdentifier.bind(this));
+        this.value = this.values.concat(value).map(this.extractIdentifier.bind(this)); // TODO: breaking point if complex
         this._input.value = '';
       }
     } else {
-      this.value = this.extractIdentifier(value);
+      this.value = this.extractIdentifier(value); // TODO: breaking point if complex
       this._input.value = this.extractName(value);
     }
     if (collapseMenu) {
@@ -414,9 +426,9 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     const index = this.values.indexOf(value);
     if (index !== -1) {
       if (index === this.values.length - 1) {
-        this.value = this.values.slice(0, -1).map(this.extractIdentifier.bind(this));
+        this.value = this.values.slice(0, -1).map(this.extractIdentifier.bind(this)); // TODO: breaking point if complex
       } else {
-        this.value = this.values.slice(0, index).concat(this.values.slice(index + 1)).map(this.extractIdentifier.bind(this));
+        this.value = this.values.slice(0, index).concat(this.values.slice(index + 1)).map(this.extractIdentifier.bind(this)); // TODO: breaking point if complex
       }
       this._input.focus();
     }
@@ -444,7 +456,14 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     // modify values list
     if (this.multi) {
       if (this.complex) {
-        this.values = value ? value.map(this.extractObjectFromId.bind(this)) : [];
+        const callback = function() {
+          this.values = value ? value.map(this.extractObjectFromId.bind(this)) : [];
+        };
+        if (this.allMatches || !value) {
+          callback.apply(this);
+        } else {
+          this.callbackQueue.push(callback);
+        }
       } else {
         this.values = value || [];
       }

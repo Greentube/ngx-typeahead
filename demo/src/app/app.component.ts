@@ -4,6 +4,7 @@ import { DataService } from './data.service';
 import { ICountry } from './countries';
 import { Observable } from 'rxjs/Observable';
 import { TypeaheadSettings } from 'ngx-type-ahead';
+import 'rxjs/add/operator/delay';
 
 @Component({
   selector: 'app-root',
@@ -16,6 +17,7 @@ export class AppComponent implements OnInit {
   hobbies: string[];
   hobbies$: Observable<string[]>;
   countries: ICountry[];
+  countries$: Observable<ICountry[]>;
 
   customSettings: Partial<TypeaheadSettings> = {
     suggestionsLimit: 0
@@ -35,6 +37,7 @@ export class AppComponent implements OnInit {
     this.hobbies$.subscribe((hobbies: string[]) => {
       this.hobbies = hobbies;
     });
+    this.countries$ = this.dataService.getCountries().delay(1000);
     this.dataService.getCountries().subscribe((countries: ICountry[]) => {
       this.countries = countries;
     });

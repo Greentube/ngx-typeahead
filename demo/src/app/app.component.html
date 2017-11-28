@@ -40,9 +40,9 @@
                      class="form-control" idField="code" [complex]="true"></type-ahead>
 
           <h6>Multi, complex object (fixed)</h6>
-          <type-ahead formControlName="countryMulti" [suggestions]="countries" [settings]="customSettings"
+          <type-ahead formControlName="countryMulti" [suggestions]="countries$" [settings]="customSettings"
                       class="form-control" idField="code" [multi]="true" [complex]="true"></type-ahead>
-          <type-ahead formControlName="countryMultiSet" [suggestions]="countries" [settings]="customSettings"
+          <type-ahead formControlName="countryMultiSet" [suggestions]="countries$" [settings]="customSettings"
                       class="form-control" idField="code" [multi]="true" [complex]="true"></type-ahead>
         </div>
         <div class="col-6">
