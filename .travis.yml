@@ -3,6 +3,15 @@ language: node_js
 cache:
   directories:
     - node_modules
+install:
+  - npm i --silent --no-optional -g @angular/cli@1.5.4
+  - npm i --silent --no-optional -g angular-cli-ghpages@0.5.2
+script:
+  - cd demo
+  - npm install
+  - ng build --prod --base-href "https://greentube.github.io/ngx-typeahead/"
+  - ngh --no-silent --repo=https://GH_TOKEN@github.com/greentube/ngx-typeahead.git --name="meeroslav" --email=meeroslav@yahoo.com
+
 notifications:
   email: false
 node_js:
