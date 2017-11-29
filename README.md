@@ -1,4 +1,5 @@
 # ngx-typeahead
+[![npm version](https://img.shields.io/npm/v/ngx-type-ahead.svg)](https://www.npmjs.com/package/ngx-type-ahead)
 [![Build Status](https://travis-ci.org/Greentube/ngx-typeahead.svg?branch=master)](https://travis-ci.org/Greentube/ngx-typeahead)
 [![Build Status](https://circleci.com/gh/Greentube/ngx-typeahead.svg?style=shield)](https://circleci.com/gh/Greentube/ngx-typeahead)
 
