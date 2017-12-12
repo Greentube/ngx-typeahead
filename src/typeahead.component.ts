@@ -10,6 +10,7 @@ import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/take';
 import 'rxjs/add/operator/toArray';
 import 'rxjs/add/operator/filter';
+import 'rxjs/add/operator/share';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { TypeaheadSettings, TypeaheadSuggestions } from './typeahead.interface';
 
@@ -271,7 +272,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     if (!this.multi && this._value) {
       const callback = () => {
         this._input.value = this.complex ?
-          this.extractNameFromMatches(this._value) :
+          this.extractNameById(this._value) :
           this._value;
       };
       if (this.allMatches || !this.complex) {
@@ -457,7 +458,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     if (this.multi) {
       if (this.complex) {
         const callback = function() {
-          this.values = value ? value.map(this.extractObjectFromId.bind(this)) : [];
+          this.values = value ? value.map(this.parseObjectById.bind(this)) : [];
           // make sure not found value doesn't break the UI
           this.values = this.values.filter((val: any) => !!val);
         };
@@ -483,6 +484,10 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     this.onChange(value);
   }
 
+  /**
+   * Set disabled state of the component
+   * @param {boolean} value
+   */
   setDisabledState(value: boolean): void {
     this.isDisabled = value;
     this.renderer.setProperty(this.elementRef.nativeElement, 'disabled', value);
@@ -499,19 +504,29 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     this.onTouched = fn;
   }
 
+  /**
+   * @param {string} filter
+   * @returns {(value: any) => boolean}
+   */
   private filterSuggestion(filter: string) {
     return (value: any): boolean => {
-      if (this.values.includes(value)) { // TODO: another issue
+      if (this.values.includes(value)) {
         return false;
       }
       if (typeof value === 'string') {
         return sanitizeString(value).includes(filter);
       } else {
-        return sanitizeString(value[this.nameField]).includes(filter) && !this.values.includes(value); // TODO: another issue
+        return sanitizeString(value[this.nameField]).includes(filter) &&
+          !this.values.some((element: any) => element[this.idField] === value[this.idField]);
       }
     };
   }
 
+  /**
+   * Check if value has match
+   * @param {string | Object} value
+   * @returns {boolean}
+   */
   private hasMatch(value: string | Object): boolean {
     const sanitizedValue = typeof value === 'string' ? sanitizeString(value) : null;
 
@@ -537,8 +552,13 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     return false;
   }
 
-  private extractNameFromMatches(id: any): string {
-    const match: any = this.extractObjectFromId(id);
+  /**
+   * Get name by parsing id into object
+   * @param id
+   * @returns {string}
+   */
+  private extractNameById(id: any): string {
+    const match: any = this.parseObjectById(id);
     if (match) {
       return match[this.nameField];
     } else {
@@ -546,7 +566,12 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     }
   }
 
-  private extractObjectFromId(id: any) {
+  /**
+   * Get complex object from id
+   * @param id
+   * @returns {any}
+   */
+  private parseObjectById(id: any) {
     for (const key in this.allMatches) {
       if ((<any> this.allMatches[key])[this.idField] === id) {
         return this.allMatches[key];
@@ -555,6 +580,11 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     return null;
   }
 
+  /**
+   * Extract id field from the complex object by name or return value if it's string
+   * @param {string | Object} value
+   * @returns {any}
+   */
   private extractIdentifier(value: string | Object) {
     if (this.complex) {
       if (typeof value === 'string') {
@@ -570,6 +600,11 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     return value;
   }
 
+  /**
+   * Extract name from complex object or return value if it's string
+   * @param {string | Object} value
+   * @returns {any}
+   */
   private extractName(value: string | Object) {
     if (this.complex && typeof value !== 'string') {
       return (<any> value)[this.nameField];
