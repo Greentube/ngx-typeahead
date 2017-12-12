@@ -4,13 +4,13 @@ import {
 } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
-import 'rxjs/add/observable/from';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/take';
 import 'rxjs/add/operator/toArray';
 import 'rxjs/add/operator/filter';
-import 'rxjs/add/operator/share';
+import 'rxjs/add/operator/mergeAll';
+import 'rxjs/add/operator/publishReplay';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { TypeaheadSettings, TypeaheadSuggestions } from './typeahead.interface';
 
@@ -224,10 +224,13 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
    */
   ngOnInit() {
     this.suggestionsInit(this.suggestions instanceof Observable ?
-      this.suggestions.mergeMap((value: any[]) => {
-        return Observable.from(value);
-      }) :
-      Observable.from(this.suggestions));
+      (<Observable<any>> this.suggestions)
+        .publishReplay(1)
+        .refCount()
+        .mergeAll() :
+      Observable
+        .of(...this.suggestions)
+    );
     this.toggleDropdown(false);
     this._inputChangeEvent.emit('');
   }
