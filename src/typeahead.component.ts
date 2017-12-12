@@ -139,7 +139,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   isExpanded = false;
   dropDownClass = '';
   matches: string[] | Object[] = [];
-  allMatches: string[] | Object[]; // leave this undefined as it's important to know when the data arrives
+  allMatches: string[] | Object[]; // undefined as it's important to know when the data arrives
 
   // values
   values: any[] = [];
@@ -403,12 +403,12 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
       return;
     }
     if (this.multi) {
-      if (!this.values.includes(value)) {
-        this.value = this.values.concat(value).map(this.extractIdentifier.bind(this)); // TODO: breaking point if complex
+      if (!this.values.includes(value)) { // TODO: another issue
+        this.value = this.values.concat(value).map(this.extractIdentifier.bind(this));
         this._input.value = '';
       }
     } else {
-      this.value = this.extractIdentifier(value); // TODO: breaking point if complex
+      this.value = this.extractIdentifier(value);
       this._input.value = this.extractName(value);
     }
     if (collapseMenu) {
@@ -426,9 +426,9 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     const index = this.values.indexOf(value);
     if (index !== -1) {
       if (index === this.values.length - 1) {
-        this.value = this.values.slice(0, -1).map(this.extractIdentifier.bind(this)); // TODO: breaking point if complex
+        this.value = this.values.slice(0, -1).map(this.extractIdentifier.bind(this));
       } else {
-        this.value = this.values.slice(0, index).concat(this.values.slice(index + 1)).map(this.extractIdentifier.bind(this)); // TODO: breaking point if complex
+        this.value = this.values.slice(0, index).concat(this.values.slice(index + 1)).map(this.extractIdentifier.bind(this));
       }
       this._input.focus();
     }
@@ -458,6 +458,8 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
       if (this.complex) {
         const callback = function() {
           this.values = value ? value.map(this.extractObjectFromId.bind(this)) : [];
+          // make sure not found value doesn't break the UI
+          this.values = this.values.filter((val: any) => !!val);
         };
         if (this.allMatches || !value) {
           callback.apply(this);
@@ -499,13 +501,13 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
 
   private filterSuggestion(filter: string) {
     return (value: any): boolean => {
-      if (this.values.includes(value)) {
+      if (this.values.includes(value)) { // TODO: another issue
         return false;
       }
       if (typeof value === 'string') {
         return sanitizeString(value).includes(filter);
       } else {
-        return sanitizeString(value[this.nameField]).includes(filter) && !this.values.includes(value);
+        return sanitizeString(value[this.nameField]).includes(filter) && !this.values.includes(value); // TODO: another issue
       }
     };
   }
@@ -526,7 +528,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
             return true;
           }
         } else {
-          if (this.matches[key] === value) {
+          if ((<any> this.matches[key])[this.idField] === (<any> value)[this.idField]) {
             return true;
           }
         }
