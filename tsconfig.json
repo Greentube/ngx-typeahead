@@ -8,6 +8,9 @@
     "declaration": true,
     "moduleResolution": "node",
     "noUnusedLocals": true,
+    "stripInternal": true,
+    "allowSyntheticDefaultImports": true,
+    "noUnusedParameters": false,
     "types": [
       "hammerjs",
       "jasmine",

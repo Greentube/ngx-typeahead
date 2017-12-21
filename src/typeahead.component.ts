@@ -1,6 +1,6 @@
 import {
   Component, forwardRef, Input, OnDestroy, ElementRef, Output, OnChanges,
-  EventEmitter, AfterViewInit, Inject, OnInit, Renderer2, HostListener, HostBinding, SimpleChanges
+  EventEmitter, AfterViewInit, Inject, OnInit, Renderer2, HostListener, HostBinding, SimpleChanges, TemplateRef
 } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
@@ -55,7 +55,7 @@ const sanitizeString = (text: string) =>
     :host[disabled] input {
       background-color: inherit;
     }
-    :host .typeahead-badge {
+    :host .type-ahead-badge {
       white-space: nowrap;
       cursor: pointer;
     }
@@ -73,8 +73,14 @@ const sanitizeString = (text: string) =>
     }
   `],
   template: `
-    <span [ngClass]="settings.tagClass" class="typeahead-badge" *ngFor="let value of values">
+    <!-- default options item template -->
+    <ng-template #taItemTemplate let-value="item">
       {{ complex ? value[nameField] : value }}
+    </ng-template>
+
+    <span [ngClass]="settings.tagClass" class="type-ahead-badge" *ngFor="let value of values; let i = index">
+      <ng-template [ngTemplateOutlet]="itemTemplate || taItemTemplate"
+                 [ngTemplateOutletContext]="{ item: value, index: i, complex: complex, nameField: nameField }"></ng-template>
       <span *ngIf="!isDisabled" aria-hidden="true" (click)="removeValue(value)"
             [ngClass]="settings.tagRemoveIconClass">×</span>
     </span>
@@ -87,12 +93,13 @@ const sanitizeString = (text: string) =>
     <i *ngIf="!isDisabled" (click)="toggleDropdown()" tabindex="-1"
        [ngClass]="settings.dropdownToggleClass"></i>
     <div role="menu" [attr.class]="dropDownClass" *ngIf="matches.length || !custom">
-      <button *ngFor="let match of matches" type="button" role="menuitem" tabindex="-1"
+      <button *ngFor="let match of matches; let i = index" type="button" role="menuitem" tabindex="-1"
               [ngClass]="settings.dropdownMenuItemClass"
               (mouseup)="handleButton($event, match)"
               (keydown)="handleButton($event, match)"
               (keyup)="handleButton($event, match)">
-        {{ complex ? match[nameField] : match }}
+        <ng-template [ngTemplateOutlet]="itemTemplate || taItemTemplate"
+                     [ngTemplateOutletContext]="{ item: match, index: i, complex: complex, nameField: nameField }"></ng-template>
       </button>
       <div role="menuitem" *ngIf="!matches.length && !custom" tabindex="-1" aria-disabled="true" disabled="true"
            [ngClass]="settings.dropdownMenuItemClass">
@@ -105,8 +112,11 @@ const sanitizeString = (text: string) =>
 export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, OnDestroy, OnInit, OnChanges {
   /** suggestions list - array of strings, objects or Observable */
   @Input() suggestions: TypeaheadSuggestions = [];
-  /** template for items in drop down */
-  // @Input() public suggestionTemplate: TemplateRef<any>;
+  /**
+   * template for items in drop down
+   * properties exposed are item and index
+   **/
+  @Input() itemTemplate: TemplateRef<any>;
   /** field to use from objects as name */
   @Input() nameField = 'name';
   /** field to use from objects as id */

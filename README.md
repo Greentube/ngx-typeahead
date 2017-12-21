@@ -49,15 +49,16 @@ export class AppModule { }
 ## API
 ### DOM element properties
 `Type-ahead` supports following properties:  
-- `suggestions: TypeaheadSuggestions` - List or observable list of elements which represent set of possible suggestions. For more information on type check [TypeaheadSuggestions](#typeaheadsuggestions)  
+- `suggestions: TypeaheadSuggestions` - List or observable list of elements which represent set of possible suggestions. For more information on type check [TypeaheadSuggestions](#typeaheadsuggestions).  
   Default value is `[]`.  
-- `custom: boolean` - Flag indicating whether custom values are allowed  
+- `itemTemplate: TemplateRef` - Custom template template for items in suggestions list and badges in multi select scenario. Exposed properties are `item` and `index`.  
+- `custom: boolean` - Flag indicating whether custom values are allowed.  
   Default value is `true`.  
 - `multi: boolean` - Flag indicating whether control accepts multiple values/array of values.  
   Default value is `false`.  
-- `complex: boolean` - Flag indicating whether suggestion represents an Object instead of simple string.    
+- `complex: boolean` - Flag indicating whether suggestion represents an Object instead of simple string.  
   Default value is `false`.  
-- `idField: string` - Only for `complex` suggestions. Object's indicator property name used as a value for form component. Can be just in combination with `multi`, but automatically cancels `custom`.    
+- `idField: string` - Only for `complex` suggestions. Object's indicator property name used as a value for form component. Can be just in combination with `multi`, but automatically cancels `custom`.  
   Default value is `id`.  
 - `nameField: string` - Only for `complex` suggestions. Object's name property. This value will be shown in dropdown and in the input, but `idField` will be saved to form.  
   Default value is `name`. 

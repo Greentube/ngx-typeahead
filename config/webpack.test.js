@@ -16,7 +16,7 @@ module.exports = {
   devtool: 'inline-source-map',
 
   resolve: {
-    extensions: ['.ts', '.js'],
+    extensions: ['.ts', '.js', '.html'],
     modules: [helpers.root('src'), 'node_modules']
   },
 
@@ -45,7 +45,13 @@ module.exports = {
         module: "commonjs",
         removeComments: true
       },
-      exclude: [/\.e2e\.ts$/]
+    }, {
+      test: /\.ts$/,
+      loader: 'angular2-template-loader',
+    }, {
+      test: /\.html$/,
+      loader: 'raw-loader',
+      include: helpers.root('src')
     }, {
       enforce: 'post',
       test: /\.(js|ts)$/,

@@ -2,7 +2,8 @@ import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testin
 import { ReactiveFormsModule } from '@angular/forms';
 import { TypeaheadComponent } from '../src/typeahead.component';
 import { Observable } from 'rxjs';
-import { TypeaheadSuggestions } from '../src/typeahead.interface';
+import { asNativeElements } from '@angular/core';
+import { By } from '@angular/platform-browser';
 
 const KEY_UP = 'keyup';
 const KEY_DOWN = 'keydown';
@@ -14,17 +15,19 @@ describe('TypeaheadComponent', () => {
     fixture: ComponentFixture<TypeaheadComponent>,
     component: TypeaheadComponent;
 
-  beforeEach(() => {
+  beforeEach((done) => {
     jasmine.clock().uninstall();
     jasmine.clock().install();
 
-    const module = TestBed.configureTestingModule({
+    TestBed.configureTestingModule({
       imports: [ReactiveFormsModule],
       declarations: [TypeaheadComponent]
     });
-
-    fixture = module.createComponent(TypeaheadComponent);
-    component = fixture.componentInstance;
+    TestBed.compileComponents().then(() => {
+      fixture = TestBed.createComponent(TypeaheadComponent);
+      component = fixture.componentInstance;
+      done();
+    });
   });
 
   it('should initialize component', () => {
@@ -43,24 +46,21 @@ describe('TypeaheadComponent', () => {
 
   it('should copy observable suggestions to allmatches', fakeAsync(() => {
     const suggestions: string[] = ['ABC', 'DEF', 'GHI'];
-    const suggestions$: TypeaheadSuggestions = Observable.of(suggestions);
-    component.suggestions = suggestions$;
+    component.suggestions = Observable.of(suggestions);
     fixture.detectChanges();
     tick();
     expect(component.allMatches).toEqual(suggestions);
   }));
 
   it('should set simple value', fakeAsync(() => {
-    const suggestions = ['ABC', 'DEF', 'GHI'];
-    component.suggestions = suggestions;
+    component.suggestions = ['ABC', 'DEF', 'GHI'];
     component.value = 'ABC';
     fixture.detectChanges();
     expect((<any> component)._input.value).toEqual('ABC');
   }));
 
   it('should set multiple values', fakeAsync(() => {
-    const suggestions = ['ABC', 'DEF', 'GHI'];
-    component.suggestions = suggestions;
+    component.suggestions = ['ABC', 'DEF', 'GHI'];
     component.multi = true;
     component.value = ['ABC', 'DEF'];
     fixture.detectChanges();
@@ -78,22 +78,18 @@ describe('TypeaheadComponent', () => {
   }));
 
   it('should set multiple complex values', fakeAsync(() => {
-    const suggestions = [{ name: 'ABC', id: 'A' }, { name: 'DEF', id: 'D' }, { name: 'GHI', id: 'G' }];
-    component.suggestions = suggestions;
+    component.suggestions = [{ name: 'ABC', id: 'A' }, { name: 'DEF', id: 'D' }, { name: 'GHI', id: 'G' }];
     component.complex = true;
     component.multi = true;
-    fixture.detectChanges();
-    tick();
-
     component.value = ['A', 'D'];
     fixture.detectChanges();
+
     expect(component.values).toEqual([{ name: 'ABC', id: 'A' }, { name: 'DEF', id: 'D' }]);
     expect((<any> component)._input.value).toEqual('');
   }));
 
   it('should show dropdown on input', fakeAsync(() => {
-    const suggestions = ['ABC', 'DEF', 'GHI'];
-    component.suggestions = suggestions;
+    component.suggestions = ['ABC', 'DEF', 'GHI'];
     fixture.detectChanges();
     tick();
 
@@ -105,8 +101,7 @@ describe('TypeaheadComponent', () => {
   }));
 
   it('should hide dropdown on escape', fakeAsync(() => {
-    const suggestions = ['ABC', 'DEF', 'GHI'];
-    component.suggestions = suggestions;
+    component.suggestions = ['ABC', 'DEF', 'GHI'];
     fixture.detectChanges();
     tick();
 
@@ -120,8 +115,7 @@ describe('TypeaheadComponent', () => {
   }));
 
   it('should limit the number of suggestions shown', fakeAsync(() => {
-    const suggestions = ['batman', 'flash', 'aquaman', 'orin', 'robin', 'spectre'];
-    component.suggestions = suggestions;
+    component.suggestions = ['batman', 'flash', 'aquaman', 'orin', 'robin', 'spectre'];
     component.settings.suggestionsLimit = 2;
     fixture.detectChanges();
 
@@ -139,8 +133,7 @@ describe('TypeaheadComponent', () => {
   }));
 
   it('multi - should be able to enter new items with Enter key', fakeAsync(() => {
-    const suggestions = ['batman', 'flash', 'aquaman', 'orin', 'robin', 'spectre'];
-    component.suggestions = suggestions;
+    component.suggestions = ['batman', 'flash', 'aquaman', 'orin', 'robin', 'spectre'];
     component.multi = true;
     fixture.detectChanges();
     const customValue1 = 'hulk';
@@ -160,14 +153,13 @@ describe('TypeaheadComponent', () => {
     jasmine.clock().tick(50);
     fixture.detectChanges();
 
-    const customItems = fixture.nativeElement.querySelectorAll('.typeahead-badge');
+    const customItems = asNativeElements(fixture.debugElement.queryAll(By.css('.type-ahead-badge')));
     expect(customItems[0].innerText).toContain(customValue1);
     expect(customItems[1].innerText).toContain(customValue2);
   }));
 
   it('multi - should delete item with Backspace key', fakeAsync(() => {
-    const suggestions = ['batman', 'flash', 'aquaman', 'orin', 'robin', 'spectre'];
-    component.suggestions = suggestions;
+    component.suggestions = ['batman', 'flash', 'aquaman', 'orin', 'robin', 'spectre'];
     component.multi = true;
     fixture.detectChanges();
     const customValue1 = 'hulk';
@@ -186,7 +178,7 @@ describe('TypeaheadComponent', () => {
     jasmine.clock().tick(50);
     fixture.detectChanges();
 
-    const customItems = fixture.nativeElement.querySelectorAll('.typeahead-badge');
+    const customItems = asNativeElements(fixture.debugElement.queryAll(By.css('.type-ahead-badge')));
     expect(customItems.length).toBe(0);
   }));
 
