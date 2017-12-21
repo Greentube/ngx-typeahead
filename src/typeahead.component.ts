@@ -272,6 +272,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
       while(this.callbackQueue.length) {
         // take first one and process it
         this.callbackQueue.shift().apply(this);
+        this._inputChangeEvent.emit('');
       }
     });
   }
