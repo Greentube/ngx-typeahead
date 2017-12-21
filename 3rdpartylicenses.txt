@@ -71,7 +71,7 @@ THE SOFTWARE.
 MIT
 MIT
 
-ngx-type-ahead@1.0.5
+ngx-type-ahead@1.1.0
 MIT
 MIT License
 
