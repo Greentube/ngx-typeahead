@@ -53,7 +53,7 @@ export class AppComponent implements OnInit {
       hobbyMultiFixed: [],
       countrySingle: null,
       countryMulti: [],
-      planet: [],
+      planet: [['https://swapi.co/api/planets/4/', 'https://swapi.co/api/planets/2/', 'https://swapi.co/api/planets/3/']],
       hobbySingleCustomSet: { value: 'Abcd', disabled: true },
       hobbySingleFixedSet: { value: this.hobbies[0], disabled: true },
       hobbyMultiCustomSet: { value: ['Abcd'], disabled: true },
