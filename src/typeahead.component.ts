@@ -45,6 +45,7 @@ const sanitizeString = (text: string) =>
       display: inline-flex;
       flex-wrap: wrap;
       -webkit-appearance: textfield;
+      -moz-appearance: textfield-multiline;
       -webkit-rtl-ordering: logical;
       user-select: text;
       cursor: auto;
