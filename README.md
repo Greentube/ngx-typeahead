@@ -83,7 +83,7 @@ export interface TypeaheadSettings {
 
   /** css classes for parts of type-ahead */
   tagClass: string; // Default is `btn badge badge-primary`
-  tagRemoveIconClass: string; // Default is `close`
+  tagRemoveIconClass: string; // Default is ``
   dropdownMenuClass: string; // Default is `dropdown-menu`
   dropdownMenuExpandedClass: string; // Default is `dropdown-menu show`
   dropdownMenuItemClass: string; // Default is `dropdown-item`

@@ -85,7 +85,9 @@ const sanitizeString = (text: string) =>
       <span *ngIf="!isDisabled" aria-hidden="true" (click)="removeValue(value)"
             [ngClass]="settings.tagRemoveIconClass">×</span>
     </span>
-    <input *ngIf="!isDisabled || !multi || !values.length" [disabled]="isDisabled || null"
+    <input *ngIf="!isDisabled || !multi || !values.length" 
+           [disabled]="isDisabled || null"
+           placeholder="{{(isDisabled || values.length) ? '' : placeholder}}"
            type="text" autocomplete="off"
            (keyup)="handleInput($event)"
            (keydown)="handleInput($event)"
@@ -128,6 +130,8 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   @Input() multi = false;
   /** use complex suggestions and results */
   @Input() complex = false;
+  /** use complex suggestions and results */
+  @Input() placeholder = '';
 
   /** Value of form control */
   @Input()
@@ -171,7 +175,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     noMatchesText: 'No matches found',
 
     tagClass: 'btn badge badge-primary',
-    tagRemoveIconClass: 'close',
+    tagRemoveIconClass: '',
     dropdownMenuClass: 'dropdown-menu',
     dropdownMenuExpandedClass: 'dropdown-menu show',
     dropdownMenuItemClass: 'dropdown-item',

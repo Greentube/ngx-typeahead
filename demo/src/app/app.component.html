@@ -13,10 +13,12 @@
           <div class="row">
             <div class="col-6">
               <type-ahead formControlName="hobbySingleCustom" [suggestions]="hobbies$"
+                          placeholder="Enter your value..."
                           class="form-control" [custom]="true"></type-ahead>
             </div>
             <div class="col-6">
               <type-ahead formControlName="hobbySingleCustomSet" [suggestions]="hobbies$"
+                          placeholder="Enter your value..."
                           class="form-control" [custom]="true"></type-ahead>
             </div>
           </div>
@@ -24,10 +26,12 @@
           <div class="row">
             <div class="col-6">
               <type-ahead formControlName="hobbySingleFixed" [suggestions]="hobbies"
+                          placeholder="Enter your value..."
                           class="form-control" [custom]="false"></type-ahead>
             </div>
             <div class="col-6">
               <type-ahead formControlName="hobbySingleFixedSet" [suggestions]="hobbies"
+                          placeholder="Enter your value..."
                           class="form-control" [custom]="false"></type-ahead>
             </div>
           </div>
@@ -35,10 +39,12 @@
           <div class="row">
             <div class="col-6">
               <type-ahead formControlName="hobbyMultiCustom" [suggestions]="hobbies"
+                          placeholder="Enter your value..."
                           class="form-control" [custom]="true" [multi]="true"></type-ahead>
             </div>
             <div class="col-6">
               <type-ahead formControlName="hobbyMultiCustomSet" [suggestions]="hobbies"
+                          placeholder="Enter your value..."
                           class="form-control" [custom]="true" [multi]="true"></type-ahead>
             </div>
           </div>
@@ -46,10 +52,12 @@
           <div class="row">
             <div class="col-6">
               <type-ahead formControlName="hobbyMultiFixed" [suggestions]="hobbies"
+                          placeholder="Enter your value..."
                           class="form-control" [custom]="false" [multi]="true"></type-ahead>
             </div>
             <div class="col-6">
               <type-ahead formControlName="hobbyMultiFixedSet" [suggestions]="hobbies"
+                          placeholder="Enter your value..."
                           class="form-control" [custom]="false" [multi]="true"></type-ahead>
             </div>
           </div>
@@ -57,10 +65,12 @@
           <div class="row">
             <div class="col-6">
               <type-ahead formControlName="countrySingle" [suggestions]="countries"
+                          placeholder="Enter your value..."
                           class="form-control" idField="code" [complex]="true"></type-ahead>
             </div>
             <div class="col-6">
               <type-ahead formControlName="countrySingleSet" [suggestions]="countries"
+                          placeholder="Enter your value..."
                           class="form-control" idField="code" [complex]="true"></type-ahead>
             </div>
           </div>
@@ -69,11 +79,13 @@
             <div class="col-6">
               <type-ahead formControlName="countryMulti" [suggestions]="countries$" [settings]="customSettings"
                           class="form-control" idField="code" [multi]="true" [complex]="true"
+                          placeholder="Enter your value..."
                           [itemTemplate]="countryTemplate"></type-ahead>
             </div>
             <div class="col-6">
               <type-ahead formControlName="countryMultiSet" [suggestions]="countries$" [settings]="customSettings"
                           class="form-control" idField="code" [multi]="true" [complex]="true"
+                          placeholder="Enter your value..."
                           [itemTemplate]="countryTemplate"></type-ahead>
             </div>
             <ng-template #countryTemplate let-item="item">
@@ -84,10 +96,12 @@
           <div class="row">
             <div class="col-6">
               <type-ahead formControlName="planet" [suggestions]="planets$" [settings]="customSettings"
+                          placeholder="Enter your value..."
                           class="form-control" idField="url" [multi]="true" [complex]="true"></type-ahead>
             </div>
             <div class="col-6">
               <type-ahead formControlName="planetSet" [suggestions]="planets$" [settings]="customSettings"
+                          placeholder="Enter your value..."
                           class="form-control" idField="url" [multi]="true" [complex]="true"></type-ahead>
             </div>
           </div>
