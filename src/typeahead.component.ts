@@ -11,6 +11,7 @@ import 'rxjs/add/operator/toArray';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/mergeAll';
 import 'rxjs/add/operator/publishReplay';
+import 'rxjs/add/observable/of';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { TypeaheadSettings, TypeaheadSuggestions } from './typeahead.interface';
 
@@ -92,7 +93,8 @@ const sanitizeString = (text: string) =>
            (keyup)="handleInput($event)"
            (keydown)="handleInput($event)"
            (paste)="handleInput($event)"
-           (click)="toggleDropdown(true)"/>
+           (click)="toggleDropdown(true)"
+           (change)="handleInputChange($event)">
     <i *ngIf="!isDisabled" (click)="toggleDropdown()" tabindex="-1"
        [ngClass]="settings.dropdownToggleClass"></i>
     <div role="menu" [attr.class]="dropDownClass" *ngIf="matches.length || !custom">
@@ -327,6 +329,16 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
       return;
     }
     this.writeValue(value);
+  }
+
+  /**
+   * Handle input change event
+   * @param {Event} event
+   */
+  handleInputChange(event: Event) {
+    // Stop the propagation of event up the DOM tree in case
+    // `change` event handler is attached to host component.
+    event.stopPropagation();
   }
 
   /**
