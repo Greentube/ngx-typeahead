@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 
 export type TypeaheadSuggestions = string[] | Object[] | Observable<string[]> | Observable<Object[]>;
 

@@ -2,14 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { DataService, ISWPlanet } from './data.service';
 import { ICountry } from './countries';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { TypeaheadSettings } from 'ngx-type-ahead';
-import 'rxjs/add/operator/delay';
+import { delay } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  templateUrl: './app.component.html'
 })
 export class AppComponent implements OnInit {
   myForm: FormGroup;
@@ -38,7 +37,7 @@ export class AppComponent implements OnInit {
     this.hobbies$.subscribe((hobbies: string[]) => {
       this.hobbies = hobbies;
     });
-    this.countries$ = this.dataService.getCountries().delay(1000);
+    this.countries$ = this.dataService.getCountries().pipe(delay(1000));
     this.dataService.getCountries().subscribe((countries: ICountry[]) => {
       this.countries = countries;
     });
