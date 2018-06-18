@@ -1,9 +1,9 @@
 import { ComponentFixture, discardPeriodicTasks, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { TypeaheadComponent } from '../src/typeahead.component';
-import { Observable } from 'rxjs';
 import { asNativeElements } from '@angular/core';
 import { By } from '@angular/platform-browser';
+import { of } from 'rxjs/observable/of';
 
 const KEY_UP = 'keyup';
 const KEY_DOWN = 'keydown';
@@ -41,7 +41,7 @@ describe('TypeaheadComponent', () => {
 
   it('should copy observable suggestions to all matches', fakeAsync(() => {
     const suggestions: string[] = ['ABC', 'DEF', 'GHI'];
-    component.suggestions = Observable.of(suggestions);
+    component.suggestions = of(suggestions);
     fixture.detectChanges();
 
     expect(component.allMatches).toEqual(suggestions);

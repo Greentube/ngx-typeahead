@@ -4,16 +4,10 @@ import {
 } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
-import 'rxjs/add/operator/debounceTime';
-import 'rxjs/add/operator/mergeMap';
-import 'rxjs/add/operator/take';
-import 'rxjs/add/operator/toArray';
-import 'rxjs/add/operator/filter';
-import 'rxjs/add/operator/mergeAll';
-import 'rxjs/add/operator/publishReplay';
-import 'rxjs/add/observable/of';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { TypeaheadSettings, TypeaheadSuggestions } from './typeahead.interface';
+import { mergeAll, publishReplay, refCount, filter, toArray, mergeMap, debounceTime, take } from 'rxjs/operators';
+import { of } from 'rxjs/observable/of';
 
 const KEY_UP = 'keyup';
 const KEY_DOWN = 'keydown';
@@ -242,11 +236,12 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   ngOnInit() {
     this.suggestionsInit(this.suggestions instanceof Observable ?
       (<Observable<any>> this.suggestions)
-        .publishReplay(1)
-        .refCount()
-        .mergeAll() :
-      Observable
-        .of(...this.suggestions)
+        .pipe(
+          publishReplay(1),
+          refCount(),
+          mergeAll()
+        ) :
+        of(...this.suggestions)
     );
     this.toggleDropdown(false);
     this._inputChangeEvent.emit('');
@@ -262,19 +257,30 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
 
   suggestionsInit(suggestion$: Observable<any>) {
     this.matchesSubscription = this._inputChangeEvent
-      .debounceTime(this.settings.typeDelay)
-      .mergeMap((value: string) => {
-        const normalizedValue = sanitizeString(value);
-        const filteredSuggestions$ = suggestion$.filter(this.filterSuggestion(normalizedValue));
+      .pipe(
+        debounceTime(this.settings.typeDelay),
+        mergeMap((value: string) => {
+          const normalizedValue = sanitizeString(value);
+          const filteredSuggestions$ = suggestion$
+            .pipe(
+              filter(this.filterSuggestion(normalizedValue))
+            );
 
-        return this.settings.suggestionsLimit ?
-          filteredSuggestions$.take(this.settings.suggestionsLimit).toArray() :
-          filteredSuggestions$.toArray();
-      })
+          return this.settings.suggestionsLimit ?
+            filteredSuggestions$.pipe(
+              take(this.settings.suggestionsLimit),
+              toArray()
+            ) :
+            filteredSuggestions$
+              .pipe(toArray());
+        })
+      )
       .subscribe((matches: string[] | Object[]) => {
         this.matches = matches;
       });
-    this.allMatchesSubscription = suggestion$.toArray().subscribe((suggestions: string[] | Object[]) => {
+    this.allMatchesSubscription = suggestion$.pipe(
+      toArray()
+    ).subscribe((suggestions: string[] | Object[]) => {
       this.allMatches = suggestions;
       while(this.callbackQueue.length) {
         // take first one and process it
@@ -537,18 +543,18 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
   }
 
   /**
-   * @param {string} filter
+   * @param {string} searchString
    * @returns {(value: any) => boolean}
    */
-  private filterSuggestion(filter: string) {
+  private filterSuggestion(searchString: string) {
     return (value: any): boolean => {
       if (this.values.includes(value)) {
         return false;
       }
       if (typeof value === 'string') {
-        return sanitizeString(value).includes(filter);
+        return sanitizeString(value).includes(searchString);
       } else {
-        return sanitizeString(value[this.nameField]).includes(filter) &&
+        return sanitizeString(value[this.nameField]).includes(searchString) &&
           !this.values.some((element: any) => element[this.idField] === value[this.idField]);
       }
     };

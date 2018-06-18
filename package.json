@@ -1,6 +1,6 @@
 {
   "name": "ngx-type-ahead",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Typeahead multi-select dropdown component for angular",
   "scripts": {
     "test": "karma start",
