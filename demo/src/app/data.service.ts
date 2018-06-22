@@ -1,9 +1,8 @@
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/observable/of';
+import { Observable, of } from 'rxjs';
 import { Countries, ICountry } from './countries';
 import { HttpClient } from '@angular/common/http';
 import { Inject } from '@angular/core';
+import { map } from 'rxjs/operators';
 
 export interface ISWPlanet {
   climate: string;
@@ -43,7 +42,7 @@ export class DataService {
       'Photography'
     ];
     const sanitizedFilter = sanitizeString(filter);
-    return Observable.of(hobbies.filter(hobby => sanitizeString(hobby).indexOf(sanitizedFilter) !== -1));
+    return of(hobbies.filter(hobby => sanitizeString(hobby).indexOf(sanitizedFilter) !== -1));
   }
 
   /**
@@ -53,11 +52,15 @@ export class DataService {
    */
   getCountries(filter: string = ''): Observable<ICountry[]> {
     const sanitizedFilter = sanitizeString(filter);
-    return Observable.of(Countries.filter(country => sanitizeString(country.name).indexOf(sanitizedFilter) !== -1));
+    return of(Countries.filter(country => sanitizeString(country.name).indexOf(sanitizedFilter) !== -1));
   }
 
   getSWPlanets(): Observable<ISWPlanet[]> {
-    return this.http.get<ISWResult<ISWPlanet>>(`https://swapi.co/api/planets/`).map(result => result.results);
+    return this.http
+      .get<ISWResult<ISWPlanet>>(`https://swapi.co/api/planets/`)
+      .pipe(
+        map(result => result.results)
+      );
   }
 }
 
