@@ -5,6 +5,8 @@
 
 > Typeahead multi-select dropdown component for angular. [Demo](https://greentube.github.io/ngx-typeahead/)
 
+> The version 2.x.x is for Angular 6+. If you are using older version of Angular (v2-v5) please use [previous version](https://github.com/Greentube/ngx-typeahead/tree/v1.x.x).
+
 # Table of contents:
 - [Installation](#installation)
 - [How it works](#how-it-works)

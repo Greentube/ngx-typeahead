@@ -5,7 +5,7 @@ cache:
     - node_modules
 script:
   - cd demo
-  - npm install
+  - yarn
   - ng build --prod --base-href "https://greentube.github.io/ngx-typeahead/"
   - ngh --message="Deploy [ci skip]:" --no-silent --repo=https://GH_TOKEN@github.com/greentube/ngx-typeahead.git --name="meeroslav" --email=missing.manual@gmail.com
 

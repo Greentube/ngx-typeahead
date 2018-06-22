@@ -2,12 +2,11 @@ import {
   Component, forwardRef, Input, OnDestroy, ElementRef, Output, OnChanges,
   EventEmitter, AfterViewInit, Inject, OnInit, Renderer2, HostListener, HostBinding, SimpleChanges, TemplateRef
 } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import { Subscription } from 'rxjs/Subscription';
+import { Observable, Subscription, of } from 'rxjs';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { TypeaheadSettings, TypeaheadSuggestions } from './typeahead.interface';
 import { mergeAll, publishReplay, refCount, filter, toArray, mergeMap, debounceTime, take } from 'rxjs/operators';
-import { of } from 'rxjs/observable/of';
+import { Subject } from 'rxjs/internal/Subject';
 
 const KEY_UP = 'keyup';
 const KEY_DOWN = 'keydown';
@@ -100,10 +99,10 @@ const sanitizeString = (text: string) =>
         <ng-template [ngTemplateOutlet]="itemTemplate || taItemTemplate"
                      [ngTemplateOutletContext]="{ item: match, index: i, complex: complex, nameField: nameField }"></ng-template>
       </button>
-      <div role="menuitem" *ngIf="!matches.length && !custom" tabindex="-1" aria-disabled="true" disabled="true"
+      <button role="menuitem" *ngIf="!matches.length && !custom" tabindex="-1" aria-disabled="true" disabled="disabled"
            [ngClass]="settings.dropdownMenuItemClass">
         {{ settings.noMatchesText }}
-      </div>
+      </button>
     </div>
   `,
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => TypeaheadComponent), multi: true }]
@@ -178,7 +177,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     dropdownToggleClass: 'dropdown-toggle'
   };
   private _input: HTMLInputElement;
-  private _inputChangeEvent: EventEmitter<any> = new EventEmitter();
+  private _inputChangeEvent: Subject<any> = new Subject();
   private _value: any;
   private _removeInProgress = false;
 
@@ -215,7 +214,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     // keep just approved tags
     if (this.multi) {
       this._input.value = null;
-      this._inputChangeEvent.emit('');
+      this._inputChangeEvent.next('');
       return;
     }
 
@@ -225,7 +224,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
       // if not match then cleanup the values
       if (!this.hasMatch(this._input.value)) {
         this._input.value = this.value = null;
-        this._inputChangeEvent.emit('');
+        this._inputChangeEvent.next('');
       }
     }
   }
@@ -244,7 +243,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
         of(...this.suggestions)
     );
     this.toggleDropdown(false);
-    this._inputChangeEvent.emit('');
+    this._inputChangeEvent.next('');
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -285,7 +284,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
       while(this.callbackQueue.length) {
         // take first one and process it
         this.callbackQueue.shift().apply(this);
-        this._inputChangeEvent.emit('');
+        this._inputChangeEvent.next('');
       }
     });
   }
@@ -393,7 +392,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
         this.toggleDropdown(false);
       }
     }
-    this._inputChangeEvent.emit(target.value);
+    this._inputChangeEvent.next(target.value);
   }
 
   /**
@@ -406,14 +405,14 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
 
     if (event instanceof MouseEvent) {
       this.setValue(value, true);
-      this._inputChangeEvent.emit(this._input.value);
+      this._inputChangeEvent.next(this._input.value);
       return;
     }
 
     if (event.type === KEY_UP) {
       if (event.key === ENTER) {  // enter
         this.setValue(value);
-        this._inputChangeEvent.emit(this._input.value);
+        this._inputChangeEvent.next(this._input.value);
         this.toggleDropdown(false);
       }
       if (event.key === ESCAPE) { // escape key
@@ -441,7 +440,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
       return;
     }
     if (this.multi) {
-      if (!this.values.includes(value)) { // TODO: another issue
+      if (!this.values.includes(value)) {
         this.value = this.values.concat(value).map(this.extractIdentifier.bind(this));
         this._input.value = '';
       }
@@ -468,7 +467,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
       } else {
         this.value = this.values.slice(0, index).concat(this.values.slice(index + 1)).map(this.extractIdentifier.bind(this));
       }
-      this._inputChangeEvent.emit(this._input.value);
+      this._inputChangeEvent.next(this._input.value);
       this._input.focus();
     }
   }
@@ -495,7 +494,7 @@ export class TypeaheadComponent implements ControlValueAccessor, AfterViewInit, 
     // modify values list
     if (this.multi) {
       if (this.complex) {
-        const callback = function() {
+        const callback = () => {
           this.values = value ? value.map(this.parseObjectById.bind(this)) : [];
           // make sure not found value doesn't break the UI
           this.values = this.values.filter((val: any) => !!val);

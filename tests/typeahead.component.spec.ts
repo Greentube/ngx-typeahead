@@ -3,7 +3,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { TypeaheadComponent } from '../src/typeahead.component';
 import { asNativeElements } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { of } from 'rxjs/observable/of';
+import { of } from 'rxjs';
 
 const KEY_UP = 'keyup';
 const KEY_DOWN = 'keydown';
