@@ -6,7 +6,7 @@ cache:
 script:
   - cd demo
   - yarn
-  - ng build --prod --base-href "https://greentube.github.io/ngx-typeahead/"
+  - ng build --prod --base-href "https://greentube.github.io/ngx-typeahead/demo/"
   - ngh --message="Deploy [ci skip]:" --no-silent --repo=https://GH_TOKEN@github.com/greentube/ngx-typeahead.git --name="meeroslav" --email=missing.manual@gmail.com
 
 notifications:
