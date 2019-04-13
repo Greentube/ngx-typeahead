@@ -2,11 +2,10 @@ import {
   Component, forwardRef, Input, OnDestroy, ElementRef, Output, OnChanges,
   EventEmitter, AfterViewInit, Inject, OnInit, Renderer2, HostListener, HostBinding, SimpleChanges, TemplateRef
 } from '@angular/core';
-import { Observable, Subscription, of } from 'rxjs';
+import { Observable, Subject, Subscription, of } from 'rxjs';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { TypeaheadSettings, TypeaheadSuggestions } from './typeahead.interface';
 import { mergeAll, publishReplay, refCount, filter, toArray, mergeMap, debounceTime, take } from 'rxjs/operators';
-import { Subject } from 'rxjs/internal/Subject';
 
 const KEY_UP = 'keyup';
 const KEY_DOWN = 'keydown';
@@ -79,7 +78,7 @@ const sanitizeString = (text: string) =>
       <span *ngIf="!isDisabled" aria-hidden="true" (click)="removeValue(value)"
             [ngClass]="settings.tagRemoveIconClass">×</span>
     </span>
-    <input *ngIf="!isDisabled || !multi || !values.length" 
+    <input *ngIf="!isDisabled || !multi || !values.length"
            [disabled]="isDisabled || null"
            placeholder="{{(isDisabled || values.length) ? '' : placeholder}}"
            type="text" autocomplete="off"
