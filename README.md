@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/Greentube/ngx-typeahead.svg?branch=master)](https://travis-ci.org/Greentube/ngx-typeahead)
 [![Build Status](https://circleci.com/gh/Greentube/ngx-typeahead.svg?style=shield)](https://circleci.com/gh/Greentube/ngx-typeahead)
 
-> Typeahead multi-select dropdown component for angular. [Demo](https://greentube.github.io/ngx-typeahead/demo)
+> Typeahead multi-select dropdown component for angular. [Demo](https://greentube.github.io/ngx-typeahead/)
 
 > The version 2.x.x is for Angular 6+. If you are using older version of Angular (v2-v5) please use [previous version](https://github.com/Greentube/ngx-typeahead/tree/v1.x.x).
 
