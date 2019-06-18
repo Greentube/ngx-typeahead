@@ -4457,8 +4457,9 @@ next-tick@1:
   resolved "https://registry.yarnpkg.com/next-tick/-/next-tick-1.0.0.tgz#ca86d1fe8828169b0120208e3dc8424b9db8342c"
 
 ngx-type-ahead@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/ngx-type-ahead/-/ngx-type-ahead-2.0.0.tgz#166a73316cb569960d63bed6d116c82f3864882a"
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/ngx-type-ahead/-/ngx-type-ahead-2.0.1.tgz#9f85c4de1bc750acf977190824ee10d58795224c"
+  integrity sha512-NW2AzU1jKLGlCPkST1zbRIuaULNc+UAxN9psUvVwBypsppwSbIaIZKxwtxtqOx5yPOUeI5cU+SaXCuAdAFk1sQ==
 
 no-case@^2.2.0:
   version "2.3.2"
