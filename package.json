@@ -70,7 +70,7 @@
     "karma-remap-coverage": "0.1.5",
     "karma-sourcemap-loader": "0.3.7",
     "karma-webpack": "~2.0.9",
-    "loader-utils": "~1.1.0",
+    "loader-utils": "~1.4.2",
     "reflect-metadata": "~0.1.12",
     "rxjs": "~6.2.1",
     "source-map-loader": "~0.2.3",
